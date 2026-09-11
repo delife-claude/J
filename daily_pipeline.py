@@ -162,17 +162,22 @@ def main() -> None:
 
     draft_title = f"{dt.strftime('%Y-%m-%d')} {day} {post.get('type_name', '')}"
 
-    if ok_to_auto_post:
-        schedule_iso = next_18_00_jst_as_utc_iso()
-        result = create_scheduled_draft(posts=posts, publish_at_iso=schedule_iso, draft_title=draft_title)
-        status_line = f"✅ Typefullyに予約投稿しました（{schedule_iso} 公開予定 / draft_id={result.get('id', '不明')}）"
-    else:
-        create_scheduled_draft(posts=posts, publish_at_iso=None, draft_title=draft_title)
-        status_line = (
-            "⚠️ 実体験が未入力、または商品候補が見つからなかったため自動投稿はスキップしました。\n"
-            "real_experience_bank.json に今日の日付で体験を追記するか、Typefullyの下書きを確認して"
-            "手動で仕上げてから投稿/予約してください。"
-        )
+    typefully_error: Exception | None = None
+    try:
+        if ok_to_auto_post:
+            schedule_iso = next_18_00_jst_as_utc_iso()
+            result = create_scheduled_draft(posts=posts, publish_at_iso=schedule_iso, draft_title=draft_title)
+            status_line = f"✅ Typefullyに予約投稿しました（{schedule_iso} 公開予定 / draft_id={result.get('id', '不明')}）"
+        else:
+            create_scheduled_draft(posts=posts, publish_at_iso=None, draft_title=draft_title)
+            status_line = (
+                "⚠️ 実体験が未入力、または商品候補が見つからなかったため自動投稿はスキップしました。\n"
+                "real_experience_bank.json に今日の日付で体験を追記するか、Typefullyの下書きを確認して"
+                "手動で仕上げてから投稿/予約してください。"
+            )
+    except Exception as e:  # Typefully側の障害でLINE通知まで止まらないようにする
+        status_line = f"❌ Typefullyへの登録に失敗しました: {e}\n本文は drafts/ に保存済みなので手動でご確認ください。"
+        typefully_error = e
 
     notification = f"【Threads自動投稿】{dt.strftime('%Y-%m-%d')}({day})\n\n{status_line}\n\n---\n{full_text}"
 
@@ -180,6 +185,11 @@ def main() -> None:
     line_user_id = os.environ.get("LINE_USER_ID")
     if line_token and line_user_id:
         send_line_push(notification, channel_access_token=line_token, user_id=line_user_id)
+    else:
+        print("[warn] LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID が未設定のため通知をスキップしました。")
+
+    if typefully_error:
+        raise typefully_error  # LINE通知は届けたうえで、ジョブ自体は失敗として扱う
 
 
 if __name__ == "__main__":
