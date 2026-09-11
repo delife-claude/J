@@ -1,17 +1,20 @@
 """役割③ライティング係。
 
-商品データをClaudeに渡し、ROOM投稿用の紹介文＋ハッシュタグを生成する。
+商品データをGemini APIに渡し、ROOM投稿用の紹介文＋ハッシュタグを生成する。
 """
 
 import json
+import os
 from pathlib import Path
 
-import anthropic
+from google import genai
+from google.genai import types
 
 BASE_DIR = Path(__file__).parent
 SYSTEM_PROMPT = (BASE_DIR / "room_system_prompt.txt").read_text(encoding="utf-8")
+MODEL = "gemini-2.5-flash"
 
-client = anthropic.Anthropic()
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 
 def write_caption(item: dict, real_experience: str = "") -> dict:
@@ -23,14 +26,16 @@ def write_caption(item: dict, real_experience: str = "") -> dict:
         "reviewAverage": item.get("reviewAverage", 0.0),
         "real_experience": real_experience,
     }
-    message = client.messages.create(
-        model="claude-sonnet-5",
-        max_tokens=800,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=json.dumps(payload, ensure_ascii=False),
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT,
+            response_mime_type="application/json",
+            max_output_tokens=800,
+        ),
     )
-    raw_text = "".join(block.text for block in message.content if block.type == "text")
-    return json.loads(raw_text)
+    return json.loads(response.text)
 
 
 def build_drafts(items: list[dict]) -> list[dict]:

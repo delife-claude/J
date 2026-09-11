@@ -1,10 +1,13 @@
 """役割①自己紹介文作成係。立ち上げ時に1回だけ手動実行する想定。"""
 
+import os
 from pathlib import Path
 
-import anthropic
+from google import genai
+from google.genai import types
 
 BASE_DIR = Path(__file__).parent
+MODEL = "gemini-2.5-flash"
 
 SYSTEM_PROMPT = """あなたは楽天ROOMのプロフィール自己紹介文を書くライターです。
 出力は自己紹介文の本文のみとし、説明文や前置きは書かないでください。
@@ -18,7 +21,7 @@ SYSTEM_PROMPT = """あなたは楽天ROOMのプロフィール自己紹介文を
 - 上から目線・専門用語の多用を避ける
 """
 
-client = anthropic.Anthropic()
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 
 def main():
@@ -31,13 +34,15 @@ def main():
         f"背景: {background or '未入力'}\n発信の軸: {focus or '未入力'}\n希望トーン: {tone or '未入力'}"
     )
 
-    message = client.messages.create(
-        model="claude-sonnet-5",
-        max_tokens=400,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_content}],
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=user_content,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT,
+            max_output_tokens=400,
+        ),
     )
-    intro_text = "".join(block.text for block in message.content if block.type == "text")
+    intro_text = response.text
 
     output_path = BASE_DIR / "profile_intro.txt"
     output_path.write_text(intro_text, encoding="utf-8")

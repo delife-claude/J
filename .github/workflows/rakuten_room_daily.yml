@@ -25,7 +25,7 @@ jobs:
       - name: Generate drafts and notify LINE
         working-directory: rakuten_room
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           MAX_PRICE: ${{ secrets.MAX_PRICE }}
