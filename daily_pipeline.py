@@ -1,7 +1,7 @@
 """役割④⑤の実体（Threads版）。GitHub Actionsから1日1回(18:00 JST)呼ばれる想定。
 
 やること:
-  1. 今日の曜日に応じた投稿を生成（Claude API, generate_weekly_posts.py の system_prompt.txt ルールに従う）
+  1. 今日の曜日に応じた投稿を生成（Gemini API, generate_weekly_posts.py の system_prompt.txt ルールに従う）
   2. cta_target=rakuten の日は楽天市場APIで商品を検索し、アフィリエイトリンクを埋め込む
   3. 実体験が空 / 商品が見つからない場合は自動投稿せず、Typefullyには下書きのみ登録してLINEで通知
      （捏造防止・壊れたリンクでの公開を防ぐため。room_system_prompt.txt と同じ思想）

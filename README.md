@@ -11,7 +11,7 @@ Threads に自動投稿（予約）します。`rakuten_room/` 配下は楽天RO
 |---|---|
 | ①自己紹介文作成係 | （Threads側は未実装。プロフィール文は手動で用意してください） |
 | ②商品リサーチ係 | `rakuten_client.py`（楽天市場商品検索API・アフィリエイトID付き） |
-| ③ライティング係 | `generate_weekly_posts.py` + `system_prompt.txt`（Claude APIで曜日別に生成） |
+| ③ライティング係 | `generate_weekly_posts.py` + `system_prompt.txt`（Gemini APIで曜日別に生成） |
 | ④投稿オペレーター | `typefully_client.py`（Typefully公式APIでThreadsに予約投稿。ブラウザ自動ログインは使わない） |
 | ⑤スケジュール管理係 | `.github/workflows/threads_daily.yml`（毎日18:00 JSTに自動実行） |
 
@@ -35,9 +35,13 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
 
 ## セットアップ
 
-### 1. Anthropic APIキー
-1. https://console.anthropic.com/ でAPIキーを発行
-2. GitHub Secrets に `ANTHROPIC_API_KEY` として登録
+### 1. Gemini APIキー（無料枠あり。`rakuten_room`で設定済みなら使い回し可）
+1. https://aistudio.google.com/apikey にアクセス（Googleアカウントでログイン、クレジットカード登録不要）
+2. 「Create API key」でキーを発行
+3. GitHub Secrets に `GEMINI_API_KEY` として登録（`rakuten_room`パイプライン用に既に登録済みなら
+   同じ値をそのまま使い回してOKです）
+
+無料枠には呼び出し回数の上限があるが、1日1投稿の生成であれば十分収まる想定。
 
 ### 2. 楽天ウェブサービス（アプリID・アクセスキー・アフィリエイトID）
 1. https://webservice.rakuten.co.jp/ でアプリ登録し、**アプリケーションID** と
@@ -64,7 +68,7 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
 
 ### 5. Secrets登録先
 GitHubリポジトリ → Settings → Secrets and variables → Actions → New repository secret
-- `ANTHROPIC_API_KEY`
+- `GEMINI_API_KEY`
 - `RAKUTEN_APP_ID` / `RAKUTEN_ACCESS_KEY` / `RAKUTEN_AFFILIATE_ID`
 - `TYPEFULLY_API_KEY`
 - `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`
@@ -73,7 +77,7 @@ GitHubリポジトリ → Settings → Secrets and variables → Actions → New
 ### 6. 動作確認
 ```
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=... RAKUTEN_APP_ID=... RAKUTEN_ACCESS_KEY=... RAKUTEN_AFFILIATE_ID=...
+export GEMINI_API_KEY=... RAKUTEN_APP_ID=... RAKUTEN_ACCESS_KEY=... RAKUTEN_AFFILIATE_ID=...
 python daily_pipeline.py --dry-run
 ```
 `--dry-run` はTypefully/LINEへは送信せず、生成された投稿文をターミナルに表示するだけです。
@@ -89,7 +93,7 @@ python daily_pipeline.py --dry-run
 ## 毎日の運用
 
 毎日18:00 JSTに GitHub Actions が自動起動し、
-1. その曜日の `type_name` / `format` / `cta_target` に従って投稿文をClaudeが生成
+1. その曜日の `type_name` / `format` / `cta_target` に従って投稿文をGeminiが生成
 2. `cta_target: rakuten` の日は楽天市場APIで商品を検索し、アフィリエイトリンクと`【PR】`を付与
 3. 実体験あり・商品リンクも埋まっていれば、その場でTypefullyに18:00投稿予約として登録
 4. 埋まらなければ下書きのみ登録し、LINEで「要確認」として通知
