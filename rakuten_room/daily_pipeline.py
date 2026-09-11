@@ -10,7 +10,7 @@ from pathlib import Path
 
 from product_research import find_candidates, record_suggested
 from write_captions import build_drafts
-from line_notify import build_notification_text, send_line_broadcast
+from line_notify import build_notification_text, send_line_push
 
 BASE_DIR = Path(__file__).parent
 DRAFTS_DIR = BASE_DIR / "drafts"
@@ -21,6 +21,7 @@ def main():
     app_id = os.environ["RAKUTEN_APP_ID"]
     access_key = os.environ["RAKUTEN_ACCESS_KEY"]
     line_token = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
+    line_user_id = os.environ["LINE_USER_ID"]
     max_price = int(os.environ.get("MAX_PRICE") or "8000")
 
     candidates = find_candidates(app_id=app_id, access_key=access_key, max_price=max_price, top_n=5)
@@ -46,7 +47,7 @@ def main():
         draft_path.write_text(f"# 楽天ROOM 下書き ({timestamp} JST)\n\n候補なし\n", encoding="utf-8")
 
     notification_text = build_notification_text(drafts)
-    send_line_broadcast(notification_text, channel_access_token=line_token)
+    send_line_push(notification_text, channel_access_token=line_token, user_id=line_user_id)
     print(notification_text)
 
 

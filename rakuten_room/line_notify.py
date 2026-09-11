@@ -1,13 +1,13 @@
-"""LINE Messaging API (broadcast) で下書きを通知する。
+"""LINE Messaging API (push) で運用者本人だけに下書きを通知する。
 
-LINE Notifyは2025年3月末で終了したため、LINE公式アカウントのbroadcast配信を使う。
-このアカウントは通知専用として運用し、自分以外に友だち追加させないこと
-（broadcastは友だち全員に届くため）。
+LINE Notifyは2025年3月末で終了したため、LINE公式アカウントのpush配信を使う。
+broadcast（友だち全員に届く）ではなく、運用者自身のuserIdを指定するpushにすることで、
+このアカウントに他の人が友だち追加しても影響を受けないようにしている。
 """
 
 import requests
 
-BROADCAST_ENDPOINT = "https://api.line.me/v2/bot/message/broadcast"
+PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push"
 MAX_CHARS_PER_MESSAGE = 4500
 MAX_MESSAGES_PER_CALL = 5  # LINE Messaging APIの upper bound
 
@@ -16,17 +16,17 @@ def _chunk_text(text: str, size: int) -> list[str]:
     return [text[i : i + size] for i in range(0, len(text), size)] or [""]
 
 
-def send_line_broadcast(text: str, channel_access_token: str) -> None:
+def send_line_push(text: str, channel_access_token: str, user_id: str) -> None:
     chunks = _chunk_text(text, MAX_CHARS_PER_MESSAGE)[:MAX_MESSAGES_PER_CALL]
     messages = [{"type": "text", "text": chunk} for chunk in chunks]
 
     resp = requests.post(
-        BROADCAST_ENDPOINT,
+        PUSH_ENDPOINT,
         headers={
             "Authorization": f"Bearer {channel_access_token}",
             "Content-Type": "application/json",
         },
-        json={"messages": messages},
+        json={"to": user_id, "messages": messages},
         timeout=15,
     )
     resp.raise_for_status()

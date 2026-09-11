@@ -33,13 +33,18 @@
 （変更したい場合は環境変数`RAKUTEN_ALLOWED_ORIGIN`で上書き可能）。
 
 ### 2. LINE公式アカウント（無料・Messaging API）
-LINE Notifyは2025年3月末で終了したため、LINE公式アカウント＋Messaging APIのbroadcast配信を使います。
+LINE Notifyは2025年3月末で終了したため、LINE公式アカウント＋Messaging APIのpush配信（運用者本人だけに届く）を使います。
 1. https://manager.line.biz/ で公式アカウントを新規作成（無料プランでOK、月200通まで無料。1日3通×30日=90通なので十分収まる）
 2. LINE Official Account Manager → 設定 → Messaging API → 有効化
-3. 「チャンネルアクセストークン（長期）」を発行 → GitHub Secrets に `LINE_CHANNEL_ACCESS_TOKEN` として登録
+3. https://developers.line.biz/console/ → 対象チャネル → 「Messaging API」タブ → 「チャネルアクセストークン（長期）」を発行 → GitHub Secrets に `LINE_CHANNEL_ACCESS_TOKEN` として登録
 4. 自分のLINEアプリで、作成した公式アカウントを友だち追加する
-5. **重要:** この公式アカウントは自分専用の通知用なので、LINE Official Account Managerの設定で
-   「あいさつメッセージ」以外の外部公開・友だち追加QRの拡散はしないこと（broadcastは友だち全員に届くため）
+5. **自分のuserIdを取得する**（push配信に必須。「Get follower IDs」APIは無料プランで使えないため、以下のWebhook経由の方法で取得する）
+   1. https://webhook.site を開き、表示された固有URL（`https://webhook.site/xxxxxxxx-...`）を控える
+   2. LINE Developersコンソール → 対象チャネルの「Messaging API」タブ → 「Webhook設定」→ Webhook URLに上記URLを貼り付けて保存 → 「Webhookの利用」をONにする
+   3. 自分のLINEアプリから、作成した公式アカウントのトーク画面で何かメッセージを送る（内容は何でもよい）
+   4. webhook.siteのタブに戻って更新すると、受信したリクエストが表示される。その中のJSONから`"events":[{"source":{"userId":"U..."`の`userId`（`U`から始まる33文字）をコピー
+   5. GitHub Secrets に `LINE_USER_ID` として登録
+   6. （任意）確認が終わったらWebhook設定はOFFに戻してよい（オフにしても発行済みのpush配信には影響しない）
 
 ### 3. Gemini APIキー（無料枠あり）
 1. https://aistudio.google.com/apikey にアクセス（Googleアカウントでログイン、クレジットカード登録不要）
@@ -54,6 +59,7 @@ GitHubリポジトリ → Settings → Secrets and variables → Actions → New
 - `RAKUTEN_APP_ID`
 - `RAKUTEN_ACCESS_KEY`
 - `LINE_CHANNEL_ACCESS_TOKEN`
+- `LINE_USER_ID`
 - `GEMINI_API_KEY`
 - （任意）`MAX_PRICE` … 未設定時は8000円
 
