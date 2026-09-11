@@ -2,8 +2,8 @@ name: Threads 自動投稿パイプライン
 
 on:
   schedule:
-    # JST 18:00 (= UTC 09:00)
-    - cron: "0 9 * * *"
+    # 水・金 JST 18:00 (= UTC 09:00)。Typefullyの月間公開上限(実測10回/月)に収めるため週2回に間引き。
+    - cron: "0 9 * * 3,5"
   workflow_dispatch: {}
 
 permissions:
@@ -29,6 +29,7 @@ jobs:
           RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
           RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
           TYPEFULLY_API_KEY: ${{ secrets.TYPEFULLY_API_KEY }}
+          TYPEFULLY_SOCIAL_SET_ID: ${{ secrets.TYPEFULLY_SOCIAL_SET_ID }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
           MAX_PRICE: ${{ secrets.MAX_PRICE }}

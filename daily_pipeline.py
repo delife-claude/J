@@ -1,4 +1,5 @@
-"""役割④⑤の実体（Threads版）。GitHub Actionsから1日1回(18:00 JST)呼ばれる想定。
+"""役割④⑤の実体（Threads版）。GitHub Actionsから週2回(水・金 18:00 JST)呼ばれる想定。
+Typefullyの月間公開上限(実測10回/月)に収めるための頻度。
 
 やること:
   1. 今日の曜日に応じた投稿を生成（Gemini API, generate_weekly_posts.py の system_prompt.txt ルールに従う）
@@ -75,11 +76,12 @@ def fetch_rakuten_product() -> dict | None:
     return items[0] if items else None
 
 
-def compose_full_text(post: dict, product: dict | None) -> tuple[str, bool]:
-    """生成結果からThreads投稿用の最終テキストを組み立てる。
+def compose_posts(post: dict, product: dict | None) -> tuple[list[str], bool]:
+    """生成結果からThreads投稿用の各パート(スレッド構成)を組み立てる。
 
-    戻り値: (本文, ok_to_auto_post)
-    ok_to_auto_post が False の場合、本文に未完成の穴（体験談プレースホルダーや
+    戻り値: (posts, ok_to_auto_post)
+    posts は [メイン投稿, コメント1, コメント2] のようなリスト(Typefullyのplatforms.threads.postsに
+    そのまま渡す)。ok_to_auto_post が False の場合、本文に未完成の穴（体験談プレースホルダーや
     埋まっていないアフィリエイトリンク）が残っている可能性があるので自動投稿しない。
     """
     hashtags = list(post.get("hashtags") or [])
@@ -101,12 +103,12 @@ def compose_full_text(post: dict, product: dict | None) -> tuple[str, bool]:
     parts = [main_post]
     if post["format"] == "long":
         parts += [comment_1, comment_2]
+    parts = [p for p in parts if p]
 
-    full_text = "\n\n\n\n".join(p for p in parts if p)
     if hashtags:
-        full_text += "\n\n\n\n" + " ".join(hashtags)
+        parts[-1] = parts[-1] + "\n\n" + " ".join(hashtags)
 
-    return full_text, not missing
+    return parts, not missing
 
 
 def next_18_00_jst_as_utc_iso() -> str:
@@ -142,7 +144,8 @@ def main() -> None:
             print(f"[warn] 楽天商品取得に失敗: {e}")
             product = None
 
-    full_text, ok_to_auto_post = compose_full_text(post, product)
+    posts, ok_to_auto_post = compose_posts(post, product)
+    full_text = "\n\n---\n\n".join(posts)  # ローカル保存・LINE通知用の表示テキスト
 
     drafts_dir = BASE_DIR / "drafts"
     drafts_dir.mkdir(exist_ok=True)
@@ -157,12 +160,14 @@ def main() -> None:
         print("\n[dry-run] Typefully/LINEへの送信はスキップしました。")
         return
 
+    draft_title = f"{dt.strftime('%Y-%m-%d')} {day} {post.get('type_name', '')}"
+
     if ok_to_auto_post:
         schedule_iso = next_18_00_jst_as_utc_iso()
-        result = create_scheduled_draft(content=full_text, schedule_date_iso=schedule_iso)
+        result = create_scheduled_draft(posts=posts, publish_at_iso=schedule_iso, draft_title=draft_title)
         status_line = f"✅ Typefullyに予約投稿しました（{schedule_iso} 公開予定 / draft_id={result.get('id', '不明')}）"
     else:
-        create_scheduled_draft(content=full_text, schedule_date_iso=None)
+        create_scheduled_draft(posts=posts, publish_at_iso=None, draft_title=draft_title)
         status_line = (
             "⚠️ 実体験が未入力、または商品候補が見つからなかったため自動投稿はスキップしました。\n"
             "real_experience_bank.json に今日の日付で体験を追記するか、Typefullyの下書きを確認して"

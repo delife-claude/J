@@ -55,13 +55,16 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
    必要なら環境変数 `RAKUTEN_ALLOWED_ORIGIN` で登録済みURLを指定してください
    （`rakuten_room/rakuten_client.py` と同じ制約です）
 
-### 3. Typefully APIキー
+### 3. Typefully APIキー・social_set_id
 1. Typefullyの管理画面でThreadsアカウントを連携済みにしておく
-2. Settings → Integrations からAPIキーを発行
-3. GitHub Secrets に `TYPEFULLY_API_KEY` として登録
-4. 実行前に公式ドキュメント（https://support.typefully.com/en/articles/8718287-typefully-api ）
-   でエンドポイント仕様が変わっていないか確認してください
-   （このコードはネットワーク制限のある環境で実地確認せず実装したため）
+2. Settings → API → 「+ New API Key」でAPIキーを発行 → GitHub Secrets に `TYPEFULLY_API_KEY`
+   として登録
+3. **投稿先アカウントのID(`social_set_id`)も必要**です。Typefully MCP等で
+   `list_social_sets` を呼ぶか、Typefullyのサポートに確認して数値IDを取得し、
+   GitHub Secrets に `TYPEFULLY_SOCIAL_SET_ID` として登録してください
+4. **月間の公開(publish)回数に上限があります**（プランによる。実測で「10回/月」だったケースあり）。
+   このパイプラインは平日毎日投稿予約を試みるため、上限に達すると予約が失敗します。
+   毎日投稿したい場合は、上限が十分なプランかTypefully側で確認してください
 
 ### 4. LINE通知（`rakuten_room` で設定済みなら使い回し可）
 `rakuten_room/README.md` の「2. LINE公式アカウント」の手順で取得した
@@ -72,7 +75,7 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
 GitHubリポジトリ → Settings → Secrets and variables → Actions → New repository secret
 - `THREADS_GEMINI_API_KEY`
 - `RAKUTEN_APP_ID` / `RAKUTEN_ACCESS_KEY` / `RAKUTEN_AFFILIATE_ID`
-- `TYPEFULLY_API_KEY`
+- `TYPEFULLY_API_KEY` / `TYPEFULLY_SOCIAL_SET_ID`
 - `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`
 - （任意）`MAX_PRICE`（未設定時8000円）、`FOCUS_GOAL`（未設定時 `rakuten_revenue`）
 
@@ -92,9 +95,14 @@ python daily_pipeline.py --dry-run
 その日付がヒットすると、生成AIがその体験を踏まえた本文にします。書かないままだと、
 その日は自動投稿されず下書き＋LINE通知どまりになります（捏造防止のため）。
 
-## 毎日の運用
+## 運用スケジュール（週2回: 水・金 18:00 JST）
 
-毎日18:00 JSTに GitHub Actions が自動起動し、
+Typefullyの月間公開上限（実測10回/月）に収まるよう、水曜・金曜の週2回（月8〜9回）に
+間引いています。ちょうど `cta_target: rakuten`（楽天アフィリエイトリンクを含む「稼げる投稿」）
+の曜日と一致しているため、収益化の観点でも効率的です。頻度を変えたい場合は
+`.github/workflows/threads_daily.yml` の `cron` を編集してください（曜日番号: 0=日, 1=月, …, 6=土）。
+
+水・金 18:00 JSTに GitHub Actions が自動起動し、
 1. その曜日の `type_name` / `format` / `cta_target` に従って投稿文をGeminiが生成
 2. `cta_target: rakuten` の日は楽天市場APIで商品を検索し、アフィリエイトリンクと`【PR】`を付与
 3. 実体験あり・商品リンクも埋まっていれば、その場でTypefullyに18:00投稿予約として登録
