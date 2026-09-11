@@ -1,0 +1,40 @@
+name: Rakuten ROOM 下書き通知
+
+on:
+  schedule:
+    # JST 08:00 / 13:00 / 20:00 (= UTC 23:00 / 04:00 / 11:00)
+    - cron: "0 23,4,11 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  generate-drafts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r rakuten_room/requirements.txt
+
+      - name: Generate drafts and notify LINE
+        working-directory: rakuten_room
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          MAX_PRICE: ${{ secrets.MAX_PRICE }}
+        run: python daily_pipeline.py
+
+      - name: Commit generated drafts and history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add rakuten_room/drafts rakuten_room/history.json
+          git diff --cached --quiet || git commit -m "Add Rakuten ROOM drafts $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
