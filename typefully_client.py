@@ -1,12 +1,16 @@
-"""Typefully APIのシンプルなクライアント(下書き作成 + 予約投稿)。役割④投稿オペレーターの実体。
+"""Typefully APIのクライアント(下書き作成 + 予約投稿)。役割④投稿オペレーターの実体。
 
-公式仕様: https://support.typefully.com/en/articles/8718287-typefully-api
+2026年9月時点の実際のTypefully API(MCP経由で実地確認済み)は、単純な文字列連結ではなく
+プラットフォームごとに投稿を配列で渡す構造になっている。
 Typefullyは公式にThreadsアカウントとの連携をサポートしており、ここで作成した下書きは
 Typefully側でThreadsアカウントに接続済みであれば、そのままThreadsに投稿される。
 楽天ROOMと違い、ブラウザログインの自動化(規約違反リスク)は不要。
 
-※実行環境のネットワーク制限により、このコードは公式ドキュメントを実地確認せずに実装した。
-  初回実行前に、公式ドキュメントでエンドポイント/パラメータ名が変わっていないか確認すること。
+※このモジュールのエンドポイント/認証ヘッダーはネットワーク制限のある環境で実地確認せず
+  実装した(MCPツール経由での構造確認はできたが、生のHTTPリクエスト形式は未検証)。
+  初回実行が失敗する場合は、公式ドキュメント
+  (https://support.typefully.com/en/articles/8718287-typefully-api) で
+  エンドポイントURL・認証ヘッダー名を確認すること。
 """
 from __future__ import annotations
 
@@ -17,27 +21,41 @@ API_BASE = "https://api.typefully.com/v1"
 
 
 def create_scheduled_draft(
-    content: str,
-    schedule_date_iso: str | None,
-    threadify: bool = False,
+    posts: list[str],
+    social_set_id: int | None = None,
+    publish_at_iso: str | None = None,
+    draft_title: str | None = None,
     api_key: str | None = None,
 ) -> dict:
-    """下書きを作成する。schedule_date_iso を指定すると、その日時に自動投稿されるよう予約する。
+    """Threadsの下書き(スレッド)を作成する。
 
-    schedule_date_iso: 例 "2026-09-11T09:00:00Z" (UTC)。None を渡すと予約せず下書きのまま残す
-    （missing_experience_flagが立っている投稿など、人間の確認が必要な場合に使う）。
+    posts: スレッドを構成する各投稿のテキスト。[main_post, comment_1, comment_2] のように渡すと
+           Threads上でメイン投稿への返信として連結される。
+    publish_at_iso: 例 "2026-09-11T09:00:00Z" (UTC)。指定するとその日時に自動投稿される。
+                     None を渡すと予約せず下書きのまま残す
+                     （missing_experience_flagが立っている投稿など、人間の確認が必要な場合に使う）。
+    social_set_id: 投稿先のTypefullyアカウント(social set)のID。未指定なら環境変数から取得。
     """
     key = api_key or os.environ["TYPEFULLY_API_KEY"]
+    sid = social_set_id or int(os.environ["TYPEFULLY_SOCIAL_SET_ID"])
+
     headers = {
         "X-API-KEY": key,
         "Content-Type": "application/json",
     }
     payload = {
-        "content": content,
-        "threadify": threadify,
+        "social_set_id": sid,
+        "platforms": {
+            "threads": {
+                "enabled": True,
+                "posts": [{"text": p} for p in posts],
+            }
+        },
     }
-    if schedule_date_iso:
-        payload["schedule-date"] = schedule_date_iso
+    if draft_title:
+        payload["draft_title"] = draft_title
+    if publish_at_iso:
+        payload["publish_at"] = publish_at_iso
 
     resp = requests.post(f"{API_BASE}/drafts/", json=payload, headers=headers, timeout=15)
     resp.raise_for_status()

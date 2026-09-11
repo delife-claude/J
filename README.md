@@ -55,13 +55,16 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
    必要なら環境変数 `RAKUTEN_ALLOWED_ORIGIN` で登録済みURLを指定してください
    （`rakuten_room/rakuten_client.py` と同じ制約です）
 
-### 3. Typefully APIキー
+### 3. Typefully APIキー・social_set_id
 1. Typefullyの管理画面でThreadsアカウントを連携済みにしておく
-2. Settings → Integrations からAPIキーを発行
-3. GitHub Secrets に `TYPEFULLY_API_KEY` として登録
-4. 実行前に公式ドキュメント（https://support.typefully.com/en/articles/8718287-typefully-api ）
-   でエンドポイント仕様が変わっていないか確認してください
-   （このコードはネットワーク制限のある環境で実地確認せず実装したため）
+2. Settings → API → 「+ New API Key」でAPIキーを発行 → GitHub Secrets に `TYPEFULLY_API_KEY`
+   として登録
+3. **投稿先アカウントのID(`social_set_id`)も必要**です。Typefully MCP等で
+   `list_social_sets` を呼ぶか、Typefullyのサポートに確認して数値IDを取得し、
+   GitHub Secrets に `TYPEFULLY_SOCIAL_SET_ID` として登録してください
+4. **月間の公開(publish)回数に上限があります**（プランによる。実測で「10回/月」だったケースあり）。
+   このパイプラインは平日毎日投稿予約を試みるため、上限に達すると予約が失敗します。
+   毎日投稿したい場合は、上限が十分なプランかTypefully側で確認してください
 
 ### 4. LINE通知（`rakuten_room` で設定済みなら使い回し可）
 `rakuten_room/README.md` の「2. LINE公式アカウント」の手順で取得した
@@ -72,7 +75,7 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
 GitHubリポジトリ → Settings → Secrets and variables → Actions → New repository secret
 - `THREADS_GEMINI_API_KEY`
 - `RAKUTEN_APP_ID` / `RAKUTEN_ACCESS_KEY` / `RAKUTEN_AFFILIATE_ID`
-- `TYPEFULLY_API_KEY`
+- `TYPEFULLY_API_KEY` / `TYPEFULLY_SOCIAL_SET_ID`
 - `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`
 - （任意）`MAX_PRICE`（未設定時8000円）、`FOCUS_GOAL`（未設定時 `rakuten_revenue`）
 
