@@ -169,8 +169,8 @@ def main() -> None:
 
     notification = f"【Threads自動投稿】{dt.strftime('%Y-%m-%d')}({day})\n\n{status_line}\n\n---\n{full_text}"
 
-    line_token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
-    line_user_id = os.environ.get("LINE_USER_ID")
+    line_token = os.environ.get("THREADS_LINE_CHANNEL_ACCESS_TOKEN")
+    line_user_id = os.environ.get("THREADS_LINE_USER_ID")
     if line_token and line_user_id:
         send_line_push(notification, channel_access_token=line_token, user_id=line_user_id)
 

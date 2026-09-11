@@ -61,17 +61,19 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
    でエンドポイント仕様が変わっていないか確認してください
    （このコードはネットワーク制限のある環境で実地確認せず実装したため）
 
-### 4. LINE通知（`rakuten_room` で設定済みなら使い回し可）
-`rakuten_room/README.md` の「2. LINE公式アカウント」の手順で取得した
-`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID` をそのまま使えます。未設定でも動作はしますが
-（通知だけスキップされる）、内容確認のためLINE通知の設定を強く推奨します。
+### 4. LINE通知（`rakuten_room` とは別のSecrets名を使用）
+このパイプラインは `rakuten_room` とは別のLINE公式アカウント／別のSecrets名
+（`THREADS_LINE_CHANNEL_ACCESS_TOKEN` / `THREADS_LINE_USER_ID`）を使う想定です。
+取得手順自体は `rakuten_room/README.md` の「2. LINE公式アカウント」と同じなので、
+**Threads用に新しく公式アカウントを作成**したうえで、その手順に従ってトークンとuserIdを
+取得し、上記の名前でSecrets登録してください。未設定でも動作はします（通知だけスキップ）。
 
 ### 5. Secrets登録先
 GitHubリポジトリ → Settings → Secrets and variables → Actions → New repository secret
 - `GEMINI_API_KEY`
 - `RAKUTEN_APP_ID` / `RAKUTEN_ACCESS_KEY` / `RAKUTEN_AFFILIATE_ID`
 - `TYPEFULLY_API_KEY`
-- `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`
+- `THREADS_LINE_CHANNEL_ACCESS_TOKEN` / `THREADS_LINE_USER_ID`
 - （任意）`MAX_PRICE`（未設定時8000円）、`FOCUS_GOAL`（未設定時 `rakuten_revenue`）
 
 ### 6. 動作確認
