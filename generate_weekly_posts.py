@@ -46,7 +46,7 @@ def build_user_payload(day: str, week_theme: str, focus_goal: str, real_experien
 
 def generate_post_for_day(day: str, week_theme: str, focus_goal: str, real_experience: str) -> dict:
     message = client.messages.create(
-        model="claude-sonnet-4-6",
+        model="claude-sonnet-5",
         max_tokens=1500,
         system=SYSTEM_PROMPT,
         messages=[
