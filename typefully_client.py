@@ -1,23 +1,18 @@
 """Typefully APIのクライアント(下書き作成 + 予約投稿)。役割④投稿オペレーターの実体。
 
-2026年9月時点の実際のTypefully API(MCP経由で実地確認済み)は、単純な文字列連結ではなく
-プラットフォームごとに投稿を配列で渡す構造になっている。
+Typefully API v1はAPIキー認証が廃止されており(実行時に
+"API v1 access via API keys is disabled. Please update your integration to API v2"
+というエラーで判明)、v2エンドポイントを使う必要がある。
 Typefullyは公式にThreadsアカウントとの連携をサポートしており、ここで作成した下書きは
 Typefully側でThreadsアカウントに接続済みであれば、そのままThreadsに投稿される。
 楽天ROOMと違い、ブラウザログインの自動化(規約違反リスク)は不要。
-
-※このモジュールのエンドポイント/認証ヘッダーはネットワーク制限のある環境で実地確認せず
-  実装した(MCPツール経由での構造確認はできたが、生のHTTPリクエスト形式は未検証)。
-  初回実行が失敗する場合は、公式ドキュメント
-  (https://support.typefully.com/en/articles/8718287-typefully-api) で
-  エンドポイントURL・認証ヘッダー名を確認すること。
 """
 from __future__ import annotations
 
 import os
 import requests
 
-API_BASE = "https://api.typefully.com/v1"
+API_BASE = "https://api.typefully.com/v2"
 
 
 def create_scheduled_draft(
