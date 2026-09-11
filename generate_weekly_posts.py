@@ -3,7 +3,7 @@
 
 前提:
 - pip install -r requirements.txt (google-genai / requests)
-- 環境変数 GEMINI_API_KEY を設定済み（無料枠あり。取得方法は README.md 参照）
+- 環境変数 THREADS_GEMINI_API_KEY を設定済み（無料枠あり。rakuten_roomとは別キー。取得方法は README.md 参照）
 - system_prompt.txt / theme_bank.json を同じディレクトリに配置
 
 使い方:
@@ -36,7 +36,7 @@ MODEL = "gemini-3.6-flash"
 MAX_ATTEMPTS = 3
 RETRY_WAIT_SECONDS = 10
 
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+client = genai.Client(api_key=os.environ["THREADS_GEMINI_API_KEY"])
 
 
 def build_user_payload(day: str, week_theme: str, focus_goal: str, real_experience: str) -> str:

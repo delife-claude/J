@@ -35,13 +35,15 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
 
 ## セットアップ
 
-### 1. Gemini APIキー（無料枠あり。`rakuten_room`で設定済みなら使い回し可）
-1. https://aistudio.google.com/apikey にアクセス（Googleアカウントでログイン、クレジットカード登録不要）
+### 1. Gemini APIキー（無料枠あり。`rakuten_room`とは別キーで発行）
+無料枠は1日20リクエスト/モデルとかなり少なく、`rakuten_room`（1日3回×候補5件分）と
+同じキーを共用すると簡単に枠を使い切ってしまうことが分かったため、**Threads専用に
+別のキーを発行**します（プロジェクトを分ければ、それぞれ別に20リクエスト/日を持てます）。
+1. https://aistudio.google.com/apikey にアクセス（`rakuten_room`用とは別のGoogleアカウント、
+   または同じアカウントで新規プロジェクトを選んでログイン、クレジットカード登録不要）
 2. 「Create API key」でキーを発行
-3. GitHub Secrets に `GEMINI_API_KEY` として登録（`rakuten_room`パイプライン用に既に登録済みなら
-   同じ値をそのまま使い回してOKです）
-
-無料枠には呼び出し回数の上限があるが、1日1投稿の生成であれば十分収まる想定。
+3. GitHub Secrets に `THREADS_GEMINI_API_KEY` として登録（`rakuten_room`の`GEMINI_API_KEY`とは
+   別の値にしてください）
 
 ### 2. 楽天ウェブサービス（アプリID・アクセスキー・アフィリエイトID）
 1. https://webservice.rakuten.co.jp/ でアプリ登録し、**アプリケーションID** と
@@ -68,7 +70,7 @@ LINE通知を確認し、内容がおかしければ公開時刻までにTypeful
 
 ### 5. Secrets登録先
 GitHubリポジトリ → Settings → Secrets and variables → Actions → New repository secret
-- `GEMINI_API_KEY`
+- `THREADS_GEMINI_API_KEY`
 - `RAKUTEN_APP_ID` / `RAKUTEN_ACCESS_KEY` / `RAKUTEN_AFFILIATE_ID`
 - `TYPEFULLY_API_KEY`
 - `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`
@@ -77,7 +79,7 @@ GitHubリポジトリ → Settings → Secrets and variables → Actions → New
 ### 6. 動作確認
 ```
 pip install -r requirements.txt
-export GEMINI_API_KEY=... RAKUTEN_APP_ID=... RAKUTEN_ACCESS_KEY=... RAKUTEN_AFFILIATE_ID=...
+export THREADS_GEMINI_API_KEY=... RAKUTEN_APP_ID=... RAKUTEN_ACCESS_KEY=... RAKUTEN_AFFILIATE_ID=...
 python daily_pipeline.py --dry-run
 ```
 `--dry-run` はTypefully/LINEへは送信せず、生成された投稿文をターミナルに表示するだけです。
