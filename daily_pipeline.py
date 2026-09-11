@@ -128,7 +128,9 @@ def main() -> None:
     day = WEEKDAY_NAMES[dt.weekday()]
     week_theme = pick_week_theme(dt)
     real_experience = load_real_experience(dt)
-    focus_goal = os.environ.get("FOCUS_GOAL", "rakuten_revenue")
+    # GitHub Actionsは未設定のSecretsを「空文字列」として渡すため、.get()のデフォルト引数では
+    # 効かない(キー自体は存在するため)。`or`でフォールバックする。
+    focus_goal = os.environ.get("FOCUS_GOAL") or "rakuten_revenue"
 
     post = generate_post_for_day(day, week_theme, focus_goal, real_experience)
 
