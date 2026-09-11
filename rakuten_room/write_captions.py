@@ -12,7 +12,7 @@ from google.genai import types
 
 BASE_DIR = Path(__file__).parent
 SYSTEM_PROMPT = (BASE_DIR / "room_system_prompt.txt").read_text(encoding="utf-8")
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-3.6-flash"
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 

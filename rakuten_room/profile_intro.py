@@ -7,7 +7,7 @@ from google import genai
 from google.genai import types
 
 BASE_DIR = Path(__file__).parent
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-3.6-flash"
 
 SYSTEM_PROMPT = """あなたは楽天ROOMのプロフィール自己紹介文を書くライターです。
 出力は自己紹介文の本文のみとし、説明文や前置きは書かないでください。
