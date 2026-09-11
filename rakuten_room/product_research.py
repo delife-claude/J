@@ -51,11 +51,11 @@ def score(item: dict) -> float:
     return review_count * review_average
 
 
-def find_candidates(app_id: str, max_price: int, top_n: int = 5) -> list[dict]:
+def find_candidates(app_id: str, access_key: str, max_price: int, top_n: int = 5) -> list[dict]:
     history = prune_history(load_history())
     recent_codes = {entry["itemCode"] for entry in history}
 
-    raw_items = search_keywords(KEYWORDS, app_id=app_id)
+    raw_items = search_keywords(KEYWORDS, app_id=app_id, access_key=access_key)
 
     filtered = [
         item
@@ -79,7 +79,8 @@ def record_suggested(items: list[dict]) -> None:
 
 if __name__ == "__main__":
     app_id = os.environ["RAKUTEN_APP_ID"]
+    access_key = os.environ["RAKUTEN_ACCESS_KEY"]
     max_price = int(os.environ.get("MAX_PRICE") or "8000")
-    candidates = find_candidates(app_id, max_price)
+    candidates = find_candidates(app_id, access_key, max_price)
     for c in candidates:
         print(c["itemName"], c["itemPrice"], c["reviewCount"], c["reviewAverage"])

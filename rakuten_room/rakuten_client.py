@@ -1,7 +1,9 @@
 """楽天市場 商品検索API（IchibaItem/Search）の薄いラッパー。
 
 これは楽天の公開Web APIで、楽天ROOMへのログインとは無関係。
-アプリID登録: https://webservice.rakuten.co.jp/
+2026年の楽天API刷新以降、旧エンドポイント(app.rakuten.co.jp)は廃止され、
+openapi.rakuten.co.jp + applicationId/accessKeyの組み合わせが必須になった。
+アプリ登録: https://webservice.rakuten.co.jp/
 """
 
 import os
@@ -9,20 +11,30 @@ import time
 
 import requests
 
-SEARCH_ENDPOINT = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601"
+SEARCH_ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701"
+
+# アプリ登録時の「Allowed websites」と一致していないとリクエストが拒否されるため、
+# 未設定時はRakuten Developersに登録済みのURLをデフォルトにする。
+DEFAULT_ORIGIN = "https://rakutenrev-m3xvgqws.manus.space"
 
 
-def search_items(keyword: str, app_id: str, hits: int = 30) -> list[dict]:
+def search_items(keyword: str, app_id: str, access_key: str, hits: int = 30) -> list[dict]:
     """指定キーワードで商品検索し、在庫ありの商品のみをRaw dictのリストで返す。"""
+    origin = os.environ.get("RAKUTEN_ALLOWED_ORIGIN", DEFAULT_ORIGIN)
     params = {
         "format": "json",
         "applicationId": app_id,
+        "accessKey": access_key,
         "keyword": keyword,
         "hits": hits,
         "availability": 1,  # 在庫ありのみ
         "sort": "-reviewCount",
     }
-    resp = requests.get(SEARCH_ENDPOINT, params=params, timeout=15)
+    headers = {
+        "Origin": origin,
+        "Referer": origin,
+    }
+    resp = requests.get(SEARCH_ENDPOINT, params=params, headers=headers, timeout=15)
     if not resp.ok:
         raise RuntimeError(f"Rakuten API error {resp.status_code} for keyword={keyword!r}: {resp.text}")
     data = resp.json()
@@ -46,14 +58,14 @@ def search_items(keyword: str, app_id: str, hits: int = 30) -> list[dict]:
     return items
 
 
-def search_keywords(keywords: list[str], app_id: str, hits_per_keyword: int = 20) -> list[dict]:
+def search_keywords(keywords: list[str], app_id: str, access_key: str, hits_per_keyword: int = 20) -> list[dict]:
     """複数キーワードをまとめて検索し、itemCodeで重複除去した結果を返す。
 
     楽天APIはレート制限があるため、キーワード間に短いsleepを挟む。
     """
     seen = {}
     for kw in keywords:
-        for item in search_items(kw, app_id=app_id, hits=hits_per_keyword):
+        for item in search_items(kw, app_id=app_id, access_key=access_key, hits=hits_per_keyword):
             code = item.get("itemCode")
             if code and code not in seen:
                 seen[code] = item
@@ -63,5 +75,6 @@ def search_keywords(keywords: list[str], app_id: str, hits_per_keyword: int = 20
 
 if __name__ == "__main__":
     app_id = os.environ["RAKUTEN_APP_ID"]
-    for it in search_items("バレーボール ジュニア シューズ", app_id=app_id, hits=5):
+    access_key = os.environ["RAKUTEN_ACCESS_KEY"]
+    for it in search_items("バレーボール ジュニア シューズ", app_id=app_id, access_key=access_key, hits=5):
         print(it["itemName"], it["itemPrice"], it["reviewCount"], it["reviewAverage"])

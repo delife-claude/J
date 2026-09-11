@@ -20,11 +20,17 @@
 
 ## セットアップ
 
-### 1. 楽天ウェブサービス アプリID（無料）
-1. https://webservice.rakuten.co.jp/ で楽天IDでログインしアプリ登録
-2. 発行された「アプリID」を控える → GitHub Secrets に `RAKUTEN_APP_ID` として登録
+### 1. 楽天ウェブサービス アプリID・アクセスキー（無料）
+2026年の楽天API刷新以降、`アプリケーションID`だけでなく`アクセスキー`も必須になっている。
+1. https://webservice.rakuten.co.jp/ で楽天IDでログインし、アプリ一覧（`/app/list`）を開く
+2. 「詳細」で確認し、APIアクセススコープに **Rakuten Ichiba API** が含まれていることを確認
+3. 表示されている **アプリケーションID** → GitHub Secrets に `RAKUTEN_APP_ID` として登録
+4. 表示されている **アクセスキー**（`pk_`から始まる文字列）→ GitHub Secrets に `RAKUTEN_ACCESS_KEY` として登録
 
 これは楽天市場の商品検索API用のIDで、ROOMへのログインとは無関係です。
+アプリ登録時の「Allowed websites」欄に設定したURLと、実際のリクエストの`Origin`/`Referer`が
+一致していないと拒否されるため、`rakuten_client.py`はデフォルトで登録済みのURLを送信する
+（変更したい場合は環境変数`RAKUTEN_ALLOWED_ORIGIN`で上書き可能）。
 
 ### 2. LINE公式アカウント（無料・Messaging API）
 LINE Notifyは2025年3月末で終了したため、LINE公式アカウント＋Messaging APIのbroadcast配信を使います。
@@ -46,6 +52,7 @@ LINE Notifyは2025年3月末で終了したため、LINE公式アカウント＋
 ### 4. Secrets登録先
 GitHubリポジトリ → Settings → Secrets and variables → Actions → New repository secret
 - `RAKUTEN_APP_ID`
+- `RAKUTEN_ACCESS_KEY`
 - `LINE_CHANNEL_ACCESS_TOKEN`
 - `GEMINI_API_KEY`
 - （任意）`MAX_PRICE` … 未設定時は8000円
