@@ -1,4 +1,5 @@
-"""役割④⑤の実体（Threads版）。GitHub Actionsから1日1回(18:00 JST)呼ばれる想定。
+"""役割④⑤の実体（Threads版）。GitHub Actionsから週2回(水・金 18:00 JST)呼ばれる想定。
+Typefullyの月間公開上限(実測10回/月)に収めるための頻度。
 
 やること:
   1. 今日の曜日に応じた投稿を生成（Gemini API, generate_weekly_posts.py の system_prompt.txt ルールに従う）

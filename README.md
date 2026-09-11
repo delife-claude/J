@@ -95,9 +95,14 @@ python daily_pipeline.py --dry-run
 その日付がヒットすると、生成AIがその体験を踏まえた本文にします。書かないままだと、
 その日は自動投稿されず下書き＋LINE通知どまりになります（捏造防止のため）。
 
-## 毎日の運用
+## 運用スケジュール（週2回: 水・金 18:00 JST）
 
-毎日18:00 JSTに GitHub Actions が自動起動し、
+Typefullyの月間公開上限（実測10回/月）に収まるよう、水曜・金曜の週2回（月8〜9回）に
+間引いています。ちょうど `cta_target: rakuten`（楽天アフィリエイトリンクを含む「稼げる投稿」）
+の曜日と一致しているため、収益化の観点でも効率的です。頻度を変えたい場合は
+`.github/workflows/threads_daily.yml` の `cron` を編集してください（曜日番号: 0=日, 1=月, …, 6=土）。
+
+水・金 18:00 JSTに GitHub Actions が自動起動し、
 1. その曜日の `type_name` / `format` / `cta_target` に従って投稿文をGeminiが生成
 2. `cta_target: rakuten` の日は楽天市場APIで商品を検索し、アフィリエイトリンクと`【PR】`を付与
 3. 実体験あり・商品リンクも埋まっていれば、その場でTypefullyに18:00投稿予約として登録
