@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "title": "うちの子だけレギュラーになれない、本当の理由",
+    "depth_level": 5,
+    "psychology_trigger": "loss_aversion_comparison_anxiety",
+    "best_type_names": ["常識破壊型"],
+    "cta_direction": "note"
+  },
+  {
+    "id": 2,
+    "title": "身長が低い子は本当に不利なのか",
+    "depth_level": 4,
+    "psychology_trigger": "complexity_empathy_hope",
+    "best_type_names": ["数字で信頼型"],
+    "cta_direction": "rakuten"
+  },
+  {
+    "id": 3,
+    "title": "高い道具を買ったのに下手なまま",
+    "depth_level": 5,
+    "psychology_trigger": "sunk_cost_regret",
+    "best_type_names": ["before→after型"],
+    "cta_direction": "note"
+  },
+  {
+    "id": 4,
+    "title": "バレー未経験の母が、子どものプレーの良し悪しが分からない",
+    "depth_level": 4,
+    "psychology_trigger": "knowledge_gap_anxiety",
+    "best_type_names": ["リスト教育型"],
+    "cta_direction": "rakuten"
+  },
+  {
+    "id": 5,
+    "title": "補欠になった日、子どもに何と声をかければいいか分からない",
+    "depth_level": 5,
+    "psychology_trigger": "guilt_confession",
+    "best_type_names": ["あるある共感型"],
+    "cta_direction": "none"
+  },
+  {
+    "id": 6,
+    "title": "監督・コーチとの相性が悪いとき、親はどこまで口を出していいか",
+    "depth_level": 4,
+    "psychology_trigger": "taboo_curiosity",
+    "best_type_names": ["常識破壊型"],
+    "cta_direction": "note"
+  },
+  {
+    "id": 7,
+    "title": "自主練しても伸びる子・伸びない子の差",
+    "depth_level": 4,
+    "psychology_trigger": "hope_and_fear_for_potential",
+    "best_type_names": ["数字で信頼型"],
+    "cta_direction": "rakuten"
+  },
+  {
+    "id": 8,
+    "title": "中学から高校でバレーを辞める子が多い理由",
+    "depth_level": 3,
+    "psychology_trigger": "future_anxiety",
+    "best_type_names": ["before→after型"],
+    "cta_direction": "note"
+  },
+  {
+    "id": 9,
+    "title": "他の子と比べてしまう自分がつらい",
+    "depth_level": 5,
+    "psychology_trigger": "self_disclosure_relief",
+    "best_type_names": ["感謝・雑談型", "あるある共感型"],
+    "cta_direction": "none"
+  },
+  {
+    "id": 10,
+    "title": "強豪校か伸び伸び校か、進路選びで人生が変わった話",
+    "depth_level": 4,
+    "psychology_trigger": "decision_urgency_regret_avoidance",
+    "best_type_names": ["note販売直結型"],
+    "cta_direction": "note"
+  }
+]
