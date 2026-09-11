@@ -9,7 +9,7 @@ Threads に自動投稿（予約）します。`rakuten_room/` 配下は楽天RO
 
 | 組織図の係 | このリポジトリでの実装 |
 |---|---|
-| ①自己紹介文作成係 | （Threads側は未実装。プロフィール文は手動で用意してください） |
+| ①自己紹介文作成係 | `profile_intro.py`（初回に1回だけ手動実行。`rakuten_room/profile_intro.py`のThreads版） |
 | ②商品リサーチ係 | `rakuten_client.py`（楽天市場商品検索API・アフィリエイトID付き） |
 | ③ライティング係 | `generate_weekly_posts.py` + `system_prompt.txt`（Gemini APIで曜日別に生成） |
 | ④投稿オペレーター | `typefully_client.py`（Typefully公式APIでThreadsに予約投稿。ブラウザ自動ログインは使わない） |
@@ -79,7 +79,15 @@ GitHubリポジトリ → Settings → Secrets and variables → Actions → New
 - `LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`
 - （任意）`MAX_PRICE`（未設定時8000円）、`FOCUS_GOAL`（未設定時 `rakuten_revenue`）
 
-### 6. 動作確認
+### 6. 自己紹介文の作成（初回のみ・手動）
+```
+pip install -r requirements.txt
+export THREADS_GEMINI_API_KEY=...
+python profile_intro.py
+```
+`profile_intro.txt` に生成されるので、内容を確認してThreadsのプロフィール欄に貼り付けてください。
+
+### 7. 動作確認
 ```
 pip install -r requirements.txt
 export THREADS_GEMINI_API_KEY=... RAKUTEN_APP_ID=... RAKUTEN_ACCESS_KEY=... RAKUTEN_AFFILIATE_ID=...
