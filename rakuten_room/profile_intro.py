@@ -39,7 +39,7 @@ def main():
         contents=user_content,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
-            max_output_tokens=400,
+            max_output_tokens=2048,
         ),
     )
     intro_text = response.text

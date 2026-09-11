@@ -32,7 +32,7 @@ def write_caption(item: dict, real_experience: str = "") -> dict:
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
             response_mime_type="application/json",
-            max_output_tokens=800,
+            max_output_tokens=4096,
         ),
     )
     return json.loads(response.text)
