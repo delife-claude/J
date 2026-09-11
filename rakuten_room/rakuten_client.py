@@ -23,7 +23,8 @@ def search_items(keyword: str, app_id: str, hits: int = 30) -> list[dict]:
         "sort": "-reviewCount",
     }
     resp = requests.get(SEARCH_ENDPOINT, params=params, timeout=15)
-    resp.raise_for_status()
+    if not resp.ok:
+        raise RuntimeError(f"Rakuten API error {resp.status_code} for keyword={keyword!r}: {resp.text}")
     data = resp.json()
     items = []
     for wrapped in data.get("Items", []):
