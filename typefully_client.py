@@ -39,8 +39,10 @@ def create_scheduled_draft(
     key = api_key or os.environ["TYPEFULLY_API_KEY"]
     sid = social_set_id or int(os.environ["TYPEFULLY_SOCIAL_SET_ID"])
 
+    # 認証ヘッダーの正式名称が未確認のため、よくある2方式を両方送る(片方は無視される想定)。
     headers = {
         "X-API-KEY": key,
+        "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
     }
     payload = {
@@ -58,5 +60,8 @@ def create_scheduled_draft(
         payload["publish_at"] = publish_at_iso
 
     resp = requests.post(f"{API_BASE}/drafts/", json=payload, headers=headers, timeout=15)
+    if not resp.ok:
+        # raise_for_status()のメッセージだけだと原因が分からないため、レスポンス本文を出力してから投げる。
+        print(f"[error] Typefully API {resp.status_code}: {resp.text}")
     resp.raise_for_status()
     return resp.json()
