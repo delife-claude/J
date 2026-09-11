@@ -2,8 +2,8 @@
 週間Threads投稿を自動生成するサンプルスクリプト。
 
 前提:
-- pip install anthropic
-- 環境変数 ANTHROPIC_API_KEY を設定済み
+- pip install -r requirements.txt (google-genai / requests)
+- 環境変数 GEMINI_API_KEY を設定済み（無料枠あり。取得方法は README.md 参照）
 - system_prompt.txt / theme_bank.json を同じディレクトリに配置
 
 使い方:
@@ -12,13 +12,16 @@
 このスクリプトはAPIから投稿JSONを受け取り、weekly_posts.json に保存するところまでを行う。
 Typefully等への実際の投稿・下書き登録は post_to_typefully() 内に自分のAPI仕様に合わせて実装すること
 （Typefully側の認証キー・エンドポイントはユーザー自身のアカウント設定に依存するため、ここではスタブのみ用意）。
+自動投稿込みで動かす場合は daily_pipeline.py を使う（こちらは typefully_client.py を実際に呼ぶ）。
 """
 
 import json
 import os
+import time
 from pathlib import Path
 
-import anthropic
+from google import genai
+from google.genai import errors, types
 
 BASE_DIR = Path(__file__).parent
 SYSTEM_PROMPT = (BASE_DIR / "system_prompt.txt").read_text(encoding="utf-8")
@@ -29,7 +32,11 @@ WEEKLY_CALENDAR = [
     "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
 ]
 
-client = anthropic.Anthropic()  # ANTHROPIC_API_KEY を環境変数から自動取得
+MODEL = "gemini-3.6-flash"
+MAX_ATTEMPTS = 3
+RETRY_WAIT_SECONDS = 10
+
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 
 def build_user_payload(day: str, week_theme: str, focus_goal: str, real_experience: str) -> str:
@@ -45,16 +52,24 @@ def build_user_payload(day: str, week_theme: str, focus_goal: str, real_experien
 
 
 def generate_post_for_day(day: str, week_theme: str, focus_goal: str, real_experience: str) -> dict:
-    message = client.messages.create(
-        model="claude-sonnet-5",
-        max_tokens=1500,
-        system=SYSTEM_PROMPT,
-        messages=[
-            {"role": "user", "content": build_user_payload(day, week_theme, focus_goal, real_experience)}
-        ],
-    )
-    raw_text = "".join(block.text for block in message.content if block.type == "text")
-    return json.loads(raw_text)
+    payload = build_user_payload(day, week_theme, focus_goal, real_experience)
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=payload,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    response_mime_type="application/json",
+                    max_output_tokens=4096,
+                ),
+            )
+            return json.loads(response.text)
+        except errors.ServerError:
+            # Geminiが混雑時に返す一時的な5xx。指数バックオフしてリトライする。
+            if attempt == MAX_ATTEMPTS:
+                raise
+            time.sleep(RETRY_WAIT_SECONDS * attempt)
 
 
 def post_to_typefully(post: dict) -> None:
