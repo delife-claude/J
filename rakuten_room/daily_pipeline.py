@@ -20,7 +20,7 @@ JST = timezone(timedelta(hours=9))
 def main():
     app_id = os.environ["RAKUTEN_APP_ID"]
     line_token = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
-    max_price = int(os.environ.get("MAX_PRICE", "8000"))
+    max_price = int(os.environ.get("MAX_PRICE") or "8000")
 
     candidates = find_candidates(app_id=app_id, max_price=max_price, top_n=5)
     drafts = build_drafts(candidates) if candidates else []

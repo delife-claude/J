@@ -79,7 +79,7 @@ def record_suggested(items: list[dict]) -> None:
 
 if __name__ == "__main__":
     app_id = os.environ["RAKUTEN_APP_ID"]
-    max_price = int(os.environ.get("MAX_PRICE", "8000"))
+    max_price = int(os.environ.get("MAX_PRICE") or "8000")
     candidates = find_candidates(app_id, max_price)
     for c in candidates:
         print(c["itemName"], c["itemPrice"], c["reviewCount"], c["reviewAverage"])
