@@ -24,7 +24,9 @@ def main():
     line_user_id = os.environ["LINE_USER_ID"]
     max_price = int(os.environ.get("MAX_PRICE") or "8000")
 
-    candidates = find_candidates(app_id=app_id, access_key=access_key, max_price=max_price, top_n=5)
+    # Geminiの無料枠は1日20リクエストまでのため、1回あたりの生成数を抑えて
+    # 1日3回×3件=9リクエストに収め、手動実行やリトライの余裕を残す。
+    candidates = find_candidates(app_id=app_id, access_key=access_key, max_price=max_price, top_n=3)
     drafts = build_drafts(candidates) if candidates else []
 
     DRAFTS_DIR.mkdir(exist_ok=True)

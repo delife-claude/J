@@ -51,8 +51,14 @@ LINE Notifyは2025年3月末で終了したため、LINE公式アカウント＋
 2. 「Create API key」でキーを発行
 3. 発行された文字列を控える → GitHub Secrets に `GEMINI_API_KEY` として登録
 
-無料枠には呼び出し回数の上限があるが、1日3回×商品5件程度の生成であれば収まる想定。
-上限に達した場合はその回の通知が失敗するので、`MAX_PRICE`同様に必要なら候補数(`top_n`)を減らして調整する。
+**重要:** 無料枠は`gemini-3.6-flash`で1日20リクエストまでという厳しい制限がある
+（Google Cloudプロジェクト/APIキー単位のカウント）。このツールは1日3回×商品3件＝
+9リクエストに抑えて運用する設定にしている（`daily_pipeline.py`の`top_n=3`）。
+手動実行での動作確認を繰り返すとその日の枠をすぐ使い切り、以降の自動実行が
+`429 RESOURCE_EXHAUSTED`で失敗する点に注意（枠は米国時間の日付でリセットされる）。
+別のGemini連携（例: Threads投稿ツールの`THREADS_GEMINI_API_KEY`）と**同じAPIキーの値**を
+使い回している場合、そちらの消費分も合算されてこの上限にぶつかるので、
+できれば別のGoogle Cloudプロジェクトで発行したキーを使うこと。
 
 ### 4. Secrets登録先
 GitHubリポジトリ → Settings → Secrets and variables → Actions → New repository secret
