@@ -127,7 +127,8 @@ def generate_post(theme: str, kind: str, real_experience: str = "") -> dict:
             time.sleep(RETRY_WAIT_SECONDS * attempt)
             continue
 
-        post = json.loads(response.text)
+        # strict=False: Geminiが本文中の改行を生の制御文字のまま返すことがあるため許容する
+        post = json.loads(response.text, strict=False)
         last_post = post
         problems = _validate(post)
         if not problems:
@@ -155,12 +156,19 @@ def format_as_text(post: dict) -> str:
 def generate_daily_batch(
     themes: list[str], total: int, real_experiences: list[str] | None = None
 ) -> list[dict]:
+    """real_experiences は long投稿のcomment_1用の実体験メモ。long投稿のスロットにだけ順に
+    割り当てる（短文投稿は実体験を使わないため）。long投稿数より少なければ使い回す。"""
     schedule = build_schedule(total)
     real_experiences = real_experiences or []
     posts = []
+    long_slot = 0
     for i, kind in enumerate(schedule):
         theme = themes[i % len(themes)]
-        real_experience = real_experiences[i] if i < len(real_experiences) else ""
+        if kind == "long" and real_experiences:
+            real_experience = real_experiences[long_slot % len(real_experiences)]
+            long_slot += 1
+        else:
+            real_experience = ""
         posts.append(generate_post(theme=theme, kind=kind, real_experience=real_experience))
     return posts
 
@@ -205,6 +213,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Threads投稿生成マシーン")
     parser.add_argument("--themes", nargs="+", help="テーマ（複数可。投稿数より少なければ順に使い回す）")
     parser.add_argument("--total", type=int, help="1日の投稿数（例: 5 または 10）")
+    parser.add_argument(
+        "--real-experience",
+        nargs="+",
+        default=None,
+        help="long投稿のcomment_1で使う実体験メモ（複数可。long投稿数より少なければ使い回す。"
+        "未指定の場合は一般化した例文になる）",
+    )
     parser.add_argument("--out", default="drafts_machine", help="保存先ディレクトリ名")
     parser.add_argument("--post", action="store_true", help="Typefullyに下書き登録する（公開予約はしない）")
     args = parser.parse_args()
@@ -220,7 +235,7 @@ def main() -> None:
     long_count, short_count = compute_long_short_counts(total)
     print(f"投稿比率: 長文{long_count}件 / 短文{short_count}件（合計{total}件）")
 
-    posts = generate_daily_batch(themes, total)
+    posts = generate_daily_batch(themes, total, real_experiences=args.real_experience)
 
     for i, post in enumerate(posts, start=1):
         print(f"\n=== {i}/{total} [{post['kind']}] {post.get('theme', '')} ===")

@@ -143,5 +143,9 @@ python post_machine.py --themes "テーマA" "テーマB" "テーマC" --total 1
 （内容確認は必ず人間が行う想定）。
 
 `comment_1`はデフォルトでは実体験なしの一般化した具体例になります（捏造防止）。実体験を使いたい
-場合は `post_machine.py` の `generate_daily_batch()` / `generate_post()` に `real_experience`
-を渡してください（`daily_pipeline.py` の `real_experience_bank.json` と同様の使い方が可能です）。
+場合は `--real-experience` で渡してください（long投稿のスロットに順に割り当てられます。
+short投稿では使われません）。
+```
+python post_machine.py --themes "熱中症・ケガ対策グッズ" --total 5 \
+  --real-experience "去年の夏、体育館内が35度近くあり保護者が熱中症でダウンしかけた。塩分タブレットと経口補水液を多めに持っていくようにしたら後半戦でふらついていた選手が回復した。"
+```
