@@ -111,3 +111,37 @@ Typefullyの月間公開上限（実測10回/月）に収まるよう、水曜�
 
 **あなたがやること:** LINE通知を確認する。特に「要確認」の投稿は、実体験を追記するか
 Typefully側で手動編集・削除してください。
+
+## 汎用版: Threads投稿生成マシーン（`post_machine.py`）
+
+上記の週間パイプラインとは別に、**任意のテーマ・任意の投稿数**でThreads投稿セットを
+その場で生成できる汎用ツールです。子どもバレー以外のジャンル・アカウントでも使えます。
+
+### 生成ルール
+- **長文投稿**：`main_post`（フック, 50〜150字）＋`comment_1`（体験談＋具体的ノウハウ＋数値, 400〜500字）
+  ＋`comment_2`（応用＋注意点＋CTA, 400〜500字）の3部構成、合計900〜1100字
+- **短文投稿**：「気づき」「共感」系のみ・150〜200字（ノウハウ売り込みなし。滞在時間ではなく
+  親近感・対話づくりが目的）
+- **投稿比率**：長文:短文 ≒ 4:1（1日5投稿→長文4・短文1、1日10投稿→長文8・短文2）を自動計算し、
+  1日の中で均等に散らして順番を組む
+- 文字数ルールを満たさない出力は、指摘つきで自動的に再生成を試みる（最大3回）
+
+### 使い方
+```
+pip install -r requirements.txt
+export THREADS_GEMINI_API_KEY=...   # generate_weekly_posts.py と共用のキーでOK
+
+# 対話モード
+python post_machine.py
+
+# 非対話モード
+python post_machine.py --themes "在宅ワークの時短術" --total 5
+python post_machine.py --themes "テーマA" "テーマB" "テーマC" --total 10
+```
+生成結果は `drafts_machine/` にJSON（構造化データ）とMarkdown（プレビュー用）で保存されます。
+`--post` を付けるとTypefullyにも下書き登録されますが、**公開予約はせず下書きのままにします**
+（内容確認は必ず人間が行う想定）。
+
+`comment_1`はデフォルトでは実体験なしの一般化した具体例になります（捏造防止）。実体験を使いたい
+場合は `post_machine.py` の `generate_daily_batch()` / `generate_post()` に `real_experience`
+を渡してください（`daily_pipeline.py` の `real_experience_bank.json` と同様の使い方が可能です）。
