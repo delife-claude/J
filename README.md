@@ -149,3 +149,22 @@ short投稿では使われません）。
 python post_machine.py --themes "熱中症・ケガ対策グッズ" --total 5 \
   --real-experience "去年の夏、体育館内が35度近くあり保護者が熱中症でダウンしかけた。塩分タブレットと経口補水液を多めに持っていくようにしたら後半戦でふらついていた選手が回復した。"
 ```
+
+### 毎日の自動実行（`post_machine_daily_ci.py` / `.github/workflows/post_machine_daily.yml`）
+
+`daily_pipeline.py`（週2回・曜日固定）とは別に、こちらは**毎日 JST 08:00 に自動実行**され、
+テーマの選定から生成・Typefully下書き登録・LINE通知までを一気通貫で行います。
+
+- **テーマ**：`theme_bank.json` の`title`を日付でローテーション（10件あるので10日周期）
+- **実体験**：`real_experience_bank.json` にその日の日付のメモがあれば使う。なければ
+  一般化した例文（`missing_experience_flag: true`）になる
+- **投稿数**：環境変数 `POST_MACHINE_DAILY_TOTAL`（未設定なら5件。手動実行(workflow_dispatch)時は
+  `total` inputで指定可能）
+- **Typefully登録は必ず「下書き」のみ**（`publish_at`を指定しない）。Typefullyの月間公開上限は
+  「予約・公開」にのみ適用され下書き登録では消費しないため、生成した分は毎日ぶん登録して構わない。
+  **実際に公開するかどうかは人間がTypefully側で選んで操作する**（公開回数の上限管理も人間の役目）
+- 生成結果は`drafts_machine/`にコミットされ、LINEに要約が通知される
+
+必要なSecrets（`daily_pipeline.py`と共用可）：`THREADS_GEMINI_API_KEY` / `TYPEFULLY_API_KEY` /
+`TYPEFULLY_SOCIAL_SET_ID` /（任意）`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`。
+`RAKUTEN_*`は不要（このツールはアフィリエイト連携をしない）。
