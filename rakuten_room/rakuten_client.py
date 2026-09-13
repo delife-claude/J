@@ -18,8 +18,15 @@ SEARCH_ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/
 DEFAULT_ORIGIN = "https://rakutenrev-m3xvgqws.manus.space"
 
 
-def search_items(keyword: str, app_id: str, access_key: str, hits: int = 30) -> list[dict]:
-    """指定キーワードで商品検索し、在庫ありの商品のみをRaw dictのリストで返す。"""
+def search_items(
+    keyword: str, app_id: str, access_key: str, hits: int = 30, genre_id: str | None = None
+) -> list[dict]:
+    """指定キーワードで商品検索し、在庫ありの商品のみをRaw dictのリストで返す。
+
+    genre_idを指定すると、その楽天ジャンル配下の商品に絞り込む。キーワードだけだと
+    商品名にたまたま含まれる無関係な他競技グッズ（SEO詰め込みタイトル）まで拾って
+    しまうため、バレーボールジャンル(201963)を指定して精度を上げるのに使う。
+    """
     origin = os.environ.get("RAKUTEN_ALLOWED_ORIGIN", DEFAULT_ORIGIN)
     params = {
         "format": "json",
@@ -30,6 +37,8 @@ def search_items(keyword: str, app_id: str, access_key: str, hits: int = 30) -> 
         "availability": 1,  # 在庫ありのみ
         "sort": "-reviewCount",
     }
+    if genre_id:
+        params["genreId"] = genre_id
     headers = {
         "Origin": origin,
         "Referer": origin,
@@ -58,14 +67,20 @@ def search_items(keyword: str, app_id: str, access_key: str, hits: int = 30) -> 
     return items
 
 
-def search_keywords(keywords: list[str], app_id: str, access_key: str, hits_per_keyword: int = 20) -> list[dict]:
+def search_keywords(
+    keywords: list[str],
+    app_id: str,
+    access_key: str,
+    hits_per_keyword: int = 20,
+    genre_id: str | None = None,
+) -> list[dict]:
     """複数キーワードをまとめて検索し、itemCodeで重複除去した結果を返す。
 
     楽天APIはレート制限があるため、キーワード間に短いsleepを挟む。
     """
     seen = {}
     for kw in keywords:
-        for item in search_items(kw, app_id=app_id, access_key=access_key, hits=hits_per_keyword):
+        for item in search_items(kw, app_id=app_id, access_key=access_key, hits=hits_per_keyword, genre_id=genre_id):
             code = item.get("itemCode")
             if code and code not in seen:
                 seen[code] = item

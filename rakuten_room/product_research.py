@@ -19,6 +19,10 @@ KEYWORDS = json.loads((BASE_DIR / "volleyball_keywords.json").read_text(encoding
 HISTORY_PATH = BASE_DIR / "history.json"
 HISTORY_RETENTION_DAYS = 14
 
+# 楽天市場の「バレーボール」ジャンル。これで絞らないと、商品名にバレーボールを
+# 含むだけの無関係な他競技グッズ（SEO詰め込みタイトル）まで拾ってしまう。
+GENRE_ID = "201963"
+
 JST = timezone(timedelta(hours=9))
 
 
@@ -55,7 +59,7 @@ def find_candidates(app_id: str, access_key: str, max_price: int, top_n: int = 5
     history = prune_history(load_history())
     recent_codes = {entry["itemCode"] for entry in history}
 
-    raw_items = search_keywords(KEYWORDS, app_id=app_id, access_key=access_key)
+    raw_items = search_keywords(KEYWORDS, app_id=app_id, access_key=access_key, genre_id=GENRE_ID)
 
     filtered = [
         item
