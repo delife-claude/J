@@ -111,3 +111,60 @@ Typefullyの月間公開上限（実測10回/月）に収まるよう、水曜�
 
 **あなたがやること:** LINE通知を確認する。特に「要確認」の投稿は、実体験を追記するか
 Typefully側で手動編集・削除してください。
+
+## 汎用版: Threads投稿生成マシーン（`post_machine.py`）
+
+上記の週間パイプラインとは別に、**任意のテーマ・任意の投稿数**でThreads投稿セットを
+その場で生成できる汎用ツールです。子どもバレー以外のジャンル・アカウントでも使えます。
+
+### 生成ルール
+- **長文投稿**：`main_post`（フック, 50〜150字）＋`comment_1`（体験談＋具体的ノウハウ＋数値, 400〜500字）
+  ＋`comment_2`（応用＋注意点＋CTA, 400〜500字）の3部構成、合計900〜1100字
+- **短文投稿**：「気づき」「共感」系のみ・150〜200字（ノウハウ売り込みなし。滞在時間ではなく
+  親近感・対話づくりが目的）
+- **投稿比率**：長文:短文 ≒ 4:1（1日5投稿→長文4・短文1、1日10投稿→長文8・短文2）を自動計算し、
+  1日の中で均等に散らして順番を組む
+- 文字数ルールを満たさない出力は、指摘つきで自動的に再生成を試みる（最大3回）
+
+### 使い方
+```
+pip install -r requirements.txt
+export THREADS_GEMINI_API_KEY=...   # generate_weekly_posts.py と共用のキーでOK
+
+# 対話モード
+python post_machine.py
+
+# 非対話モード
+python post_machine.py --themes "在宅ワークの時短術" --total 5
+python post_machine.py --themes "テーマA" "テーマB" "テーマC" --total 10
+```
+生成結果は `drafts_machine/` にJSON（構造化データ）とMarkdown（プレビュー用）で保存されます。
+`--post` を付けるとTypefullyにも下書き登録されますが、**公開予約はせず下書きのままにします**
+（内容確認は必ず人間が行う想定）。
+
+`comment_1`はデフォルトでは実体験なしの一般化した具体例になります（捏造防止）。実体験を使いたい
+場合は `--real-experience` で渡してください（long投稿のスロットに順に割り当てられます。
+short投稿では使われません）。
+```
+python post_machine.py --themes "熱中症・ケガ対策グッズ" --total 5 \
+  --real-experience "去年の夏、体育館内が35度近くあり保護者が熱中症でダウンしかけた。塩分タブレットと経口補水液を多めに持っていくようにしたら後半戦でふらついていた選手が回復した。"
+```
+
+### 毎日の自動実行（`post_machine_daily_ci.py` / `.github/workflows/post_machine_daily.yml`）
+
+`daily_pipeline.py`（週2回・曜日固定）とは別に、こちらは**毎日 JST 08:00 に自動実行**され、
+テーマの選定から生成・Typefully下書き登録・LINE通知までを一気通貫で行います。
+
+- **テーマ**：`theme_bank.json` の`title`を日付でローテーション（10件あるので10日周期）
+- **実体験**：`real_experience_bank.json` にその日の日付のメモがあれば使う。なければ
+  一般化した例文（`missing_experience_flag: true`）になる
+- **投稿数**：環境変数 `POST_MACHINE_DAILY_TOTAL`（未設定なら5件。手動実行(workflow_dispatch)時は
+  `total` inputで指定可能）
+- **Typefully登録は必ず「下書き」のみ**（`publish_at`を指定しない）。Typefullyの月間公開上限は
+  「予約・公開」にのみ適用され下書き登録では消費しないため、生成した分は毎日ぶん登録して構わない。
+  **実際に公開するかどうかは人間がTypefully側で選んで操作する**（公開回数の上限管理も人間の役目）
+- 生成結果は`drafts_machine/`にコミットされ、LINEに要約が通知される
+
+必要なSecrets（`daily_pipeline.py`と共用可）：`THREADS_GEMINI_API_KEY` / `TYPEFULLY_API_KEY` /
+`TYPEFULLY_SOCIAL_SET_ID` /（任意）`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`。
+`RAKUTEN_*`は不要（このツールはアフィリエイト連携をしない）。

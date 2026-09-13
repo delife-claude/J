@@ -1,0 +1,46 @@
+name: Threads投稿生成マシーン（毎日・下書き登録まで自動）
+
+on:
+  schedule:
+    # 毎日 JST 08:00 (= UTC 23:00 前日)
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+    inputs:
+      total:
+        description: "本日の投稿数（長文:短文 ≒ 4:1で自動配分。デフォルト5）"
+        required: false
+        default: "5"
+
+permissions:
+  contents: write
+
+jobs:
+  generate-and-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate today's posts and register as Typefully drafts (no publish)
+        env:
+          THREADS_GEMINI_API_KEY: ${{ secrets.THREADS_GEMINI_API_KEY }}
+          TYPEFULLY_API_KEY: ${{ secrets.TYPEFULLY_API_KEY }}
+          TYPEFULLY_SOCIAL_SET_ID: ${{ secrets.TYPEFULLY_SOCIAL_SET_ID }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          POST_MACHINE_DAILY_TOTAL: ${{ github.event.inputs.total || '5' }}
+        run: python post_machine_daily_ci.py
+
+      - name: Commit generated drafts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add drafts_machine
+          git diff --cached --quiet || git commit -m "Add post_machine drafts $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
