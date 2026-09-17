@@ -1,0 +1,120 @@
+{
+  "_readme": "SNS/媒体ごとの投稿ルール定義。content_engine.py が生成時に参照し、webapp/app.py の「戦略」タブがそのまま表示する。attach_every_n_posts は『何投稿に1回アフィリエイトを付けるか』の目安カウンタ。affiliate_link_slot は生成AIに許可する貼り方（reply=コメント欄, bio=プロフィールリンク誘導, in_body=本文に直接, caption_link=リンクスタッカー等）。実際の運用ルール（ステマ規制対応の【PR】表記など）は README.md も参照。",
+
+  "threads": {
+    "label": "Threads",
+    "char_limit": 500,
+    "kind_options": ["long", "short"],
+    "affiliate_link_slot": "reply",
+    "attach_every_n_posts": 4,
+    "why": "本文に外部リンクを貼るとアルゴリズムにリーチを落とされやすい。フォロー中フィードの表示優先度がリンク投稿で下がる傾向が繰り返し報告されている。",
+    "how_to_attach": "本文では紹介するだけに留め、『商品リンクはこのスレッドのコメント欄から』と誘導し、投稿後の1件目の自己リプライにリンクを貼る。",
+    "cta_style": "会話・共感トーンを崩さない範囲で軽く誘導。売り込み感を出さない。",
+    "pr_label_required": true,
+    "cadence_hint": "週2〜3投稿中1本を収益投稿に。長文4:短文1の比率を維持し、収益投稿は長文枠に割り当てる。"
+  },
+
+  "instagram": {
+    "label": "Instagram",
+    "char_limit": 2200,
+    "kind_options": ["carousel_caption", "reel_caption", "story"],
+    "affiliate_link_slot": "bio",
+    "attach_every_n_posts": 4,
+    "why": "フィード投稿のキャプション内リンクはタップできないため、プロフィール欄の1リンク（リンクまとめツール推奨）に集約するのが基本。ストーリーズはリンクスタンプが使えるアカウントなら直接遷移できる。",
+    "how_to_attach": "キャプション末尾で『プロフィールのリンクから』『ストーリーズのリンクから』と誘導。フォロワー1万人未満や新規ビジネスアカウント等リンクスタンプが使えない場合は必ずプロフィール誘導のみにする。",
+    "cta_style": "カルーセル（複数画像）で『① 悩み → ② 選び方 → ③ おすすめ → ④ まとめ・保存訴求』の型が保存率とCTRの両立に強い。",
+    "pr_label_required": true,
+    "cadence_hint": "フィード投稿は週3〜4本、うち1本を紹介系に。ストーリーズは毎日1〜2枚使って軽くリンク誘導してよい（本編よりCTRが出やすい）。"
+  },
+
+  "x": {
+    "label": "X（旧Twitter）",
+    "char_limit": 280,
+    "kind_options": ["single_tweet", "thread_last_tweet", "quote_tweet"],
+    "affiliate_link_slot": "in_body",
+    "attach_every_n_posts": 3,
+    "why": "Xは本文に直接リンクを貼れるが、外部リンク付き投稿はインプレッションが伸びにくいとされる。スレッドの最後のツイートにリンクを置く、または引用リプライで補足する形だと初動のリーチを落とさずに済む。",
+    "how_to_attach": "スレッド形式（元ツイート→リプライで深掘り→最後のリプライにリンク）にするか、投稿後に自己リプライでリンクを貼る。単発ツイートで直接貼るのは最終手段。",
+    "cta_style": "テンポの良い口語・箇条書き。1スレッド3〜5ツイート程度。",
+    "pr_label_required": true,
+    "cadence_hint": "Xは投稿頻度を上げやすい媒体なので1日1〜3投稿でもよいが、アフィリエイト系は3投稿に1本程度に抑え、日常・共感系を軸にする。"
+  },
+
+  "tiktok": {
+    "label": "TikTok",
+    "char_limit": 150,
+    "kind_options": ["video_script", "caption"],
+    "affiliate_link_slot": "bio",
+    "attach_every_n_posts": 6,
+    "why": "キャプションのリンクはクリックできない前提で考える（TikTok Shop連携やリンク機能はアカウント条件次第）。動画自体で『見て楽しい・役に立つ』体験を作り、プロフィールのリンクへ誘導するのが王道。",
+    "how_to_attach": "動画内で『詳しくはプロフィールのリンクから』とテロップ・ナレーションで誘導。キャプションは短く、フックとハッシュタグ中心にする。",
+    "cta_style": "台本は 0〜2秒で強フック→悩み提示→解決の流れを見せる→最後に一言誘導、の構成。エンタメ・実演が主役で紹介は添える程度にする。",
+    "pr_label_required": true,
+    "cadence_hint": "エンタメ・ノウハウ動画を主軸にし、紹介色の強い動画は6本に1本程度。頻度を上げすぎるとフォロー解除が増えやすい。"
+  },
+
+  "note": {
+    "label": "note",
+    "char_limit": 6000,
+    "kind_options": ["article"],
+    "affiliate_link_slot": "in_body",
+    "attach_every_n_posts": 1,
+    "why": "noteは長文記事メディアで、本文中に直接リンクを置ける数少ない媒体。検索・SNSからの流入が記事に蓄積するストック型なので、比較・レビュー記事とアフィリエイトの相性が最も良い。",
+    "how_to_attach": "記事内の『おすすめ』セクションで直接リンクを貼る。冒頭に【PR】、末尾にも広告表示を明記。",
+    "cta_style": "見出し(H2/H3)＋箇条書き＋体験談で構成する長文記事。SEOタイトル（悩みキーワードを含む）を意識する。",
+    "pr_label_required": true,
+    "cadence_hint": "週1〜2本のペースで資産として積み上げる。毎回1商品の深掘りレビューにするとCTRが安定する。"
+  },
+
+  "brain": {
+    "label": "Brain",
+    "char_limit": 6000,
+    "kind_options": ["article"],
+    "affiliate_link_slot": "none",
+    "attach_every_n_posts": 0,
+    "why": "Brainは有料noteのような教材販売プラットフォームで、アフィリエイト誘導よりも自社コンテンツ（教材・ノウハウ）販売のCTA先として使うのが基本設計。",
+    "how_to_attach": "アフィリエイトリンクは基本貼らない。他SNSからBrainへの導線（購入CTA）として使う。",
+    "cta_style": "販売ページ的な構成（結論→根拠→実績→限定性→CTA）。",
+    "pr_label_required": false,
+    "cadence_hint": "他SNSで信頼を積んだ後、月1〜2回の高単価CTA先として使う。毎日更新する媒体ではない。"
+  },
+
+  "blog": {
+    "label": "自社ブログ（WordPress等）※おすすめ追加候補",
+    "char_limit": 8000,
+    "kind_options": ["article"],
+    "affiliate_link_slot": "in_body",
+    "attach_every_n_posts": 1,
+    "why": "SNSはフロー型（流れて消える）だが、ブログはSEO経由で半永久的に流入する資産（ストック型）。noteより広告掲載・デザイン・SEO設定の自由度が高く、長期的なアフィリエイト収益の主力になりやすい。",
+    "how_to_attach": "記事内に直接リンク。比較表・レビュー・まとめ記事が特にCTRが高い。",
+    "cta_style": "SEOタイトル・見出し設計＋内部リンクで回遊性を上げる。",
+    "pr_label_required": true,
+    "cadence_hint": "週1本からでも継続が資産になる。SNS投稿からブログ記事に誘導する導線を必ず作る。"
+  },
+
+  "pinterest": {
+    "label": "Pinterest ※おすすめ追加候補",
+    "char_limit": 500,
+    "kind_options": ["pin_caption"],
+    "affiliate_link_slot": "in_body",
+    "attach_every_n_posts": 1,
+    "why": "画像（ピン）から直接リンクへ飛ばせる数少ないSNSで、検索エンジン的に長期間表示され続けるためCTRが安定して高い。育児・グッズ紹介ジャンルと相性が良い。",
+    "how_to_attach": "ピンの説明文とリンク先URLに直接アフィリエイトリンクまたはブログ記事URLを設定する。",
+    "cta_style": "縦長画像＋短いキャッチコピー。",
+    "pr_label_required": true,
+    "cadence_hint": "週数枚を継続投稿。ブログ記事があれば1記事につき複数ピンを作ると効率的。"
+  },
+
+  "youtube_shorts": {
+    "label": "YouTube Shorts ※おすすめ追加候補",
+    "char_limit": 100,
+    "kind_options": ["video_script", "caption"],
+    "affiliate_link_slot": "bio",
+    "attach_every_n_posts": 5,
+    "why": "TikTokと同様に概要欄・プロフィールリンクへの誘導が基本。YouTubeは検索性が高く、通常動画と組み合わせるとストック資産にもなる。",
+    "how_to_attach": "概要欄にリンクを設置し、動画内で『概要欄から』と誘導。",
+    "cta_style": "TikTokと同じ台本を横展開しやすい。",
+    "pr_label_required": true,
+    "cadence_hint": "TikTokと同時投稿でOK。紹介色の強い動画は5本に1本程度。"
+  }
+}

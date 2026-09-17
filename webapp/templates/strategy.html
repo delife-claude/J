@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>媒体別 投稿戦略</h1>
+<p>それぞれの媒体アルゴリズム特性に合わせて、リンクの貼り方・添付頻度を変えています。
+  「※おすすめ追加候補」は依頼にあった6媒体に加えて追加を推奨する媒体です。</p>
+
+{% for key, r in rules.items() %}
+<section class="rule-card">
+  <h2>{{ r.label }}</h2>
+  <table>
+    <tr><th>文字数目安</th><td>{{ r.char_limit }}字</td></tr>
+    <tr><th>投稿タイプ</th><td>{{ r.kind_options|join(', ') }}</td></tr>
+    <tr><th>リンクの貼り方</th><td>
+      {% if r.affiliate_link_slot == 'reply' %}本文には貼らず、コメント欄・自己リプライへ誘導
+      {% elif r.affiliate_link_slot == 'bio' %}本文には貼らず、プロフィールリンクへ誘導
+      {% elif r.affiliate_link_slot == 'in_body' %}本文中に直接リンクを貼ってOK
+      {% else %}アフィリエイト誘導なし
+      {% endif %}
+    </td></tr>
+    <tr><th>添付頻度の目安</th><td>
+      {% if r.attach_every_n_posts %}投稿{{ r.attach_every_n_posts }}件に1回{% else %}基本的に添付しない{% endif %}
+      （{{ r.cadence_hint }}）
+    </td></tr>
+    <tr><th>なぜこのルールか</th><td>{{ r.why }}</td></tr>
+    <tr><th>具体的な貼り方</th><td>{{ r.how_to_attach }}</td></tr>
+    <tr><th>文章の型</th><td>{{ r.cta_style }}</td></tr>
+    <tr><th>ステマ規制対応</th><td>{% if r.pr_label_required %}【PR】表記・広告タグ必須{% else %}原則アフィリエイト誘導なしのため対象外{% endif %}</td></tr>
+  </table>
+</section>
+{% endfor %}
+{% endblock %}

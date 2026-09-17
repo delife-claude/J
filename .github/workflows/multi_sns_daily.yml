@@ -1,0 +1,43 @@
+name: 全SNS毎日自動作成（アフィリエイト投稿アプリ）
+
+on:
+  schedule:
+    # 毎日 JST 07:00 (= UTC 22:00 前日)
+    - cron: "0 22 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  generate-all-platforms:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate today's posts for every platform
+        env:
+          THREADS_GEMINI_API_KEY: ${{ secrets.THREADS_GEMINI_API_KEY }}
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          AMAZON_ASSOCIATE_TAG: ${{ secrets.AMAZON_ASSOCIATE_TAG }}
+          AFFILIATE_KEYWORD: ${{ secrets.AFFILIATE_KEYWORD }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: python daily_multi_sns.py
+
+      - name: Commit generated drafts and updated counters
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add generated_posts state
+          git diff --cached --quiet || git commit -m "Add multi-SNS drafts $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push

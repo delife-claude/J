@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>履歴</h1>
+
+<form method="get" class="form inline">
+  <label>媒体で絞り込み
+    <select name="platform" onchange="this.form.submit()">
+      <option value="">すべて</option>
+      {% for p in platforms %}
+      <option value="{{ p }}" {% if p == selected %}selected{% endif %}>{{ p }}</option>
+      {% endfor %}
+    </select>
+  </label>
+</form>
+
+{% if not drafts %}
+<p class="note">まだ下書きがありません。</p>
+{% endif %}
+
+{% for d in drafts %}
+<article class="post-item">
+  <h3>[{{ d._platform }}] {{ d.post.theme }} <span class="note">{{ d._file }}</span>
+    {% if d.rendered.attach_affiliate %}<span class="tag">アフィリエイトあり</span>{% endif %}
+  </h3>
+  <pre class="post-text">{{ d.rendered.main_text }}</pre>
+  {% if d.rendered.followup_text %}<pre class="post-text small">{{ d.rendered.followup_text }}</pre>{% endif %}
+</article>
+{% endfor %}
+{% endblock %}

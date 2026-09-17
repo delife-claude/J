@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>単発作成</h1>
+<p>テーマ・媒体・実体験・商品（任意）を指定して、1件だけその場で生成します。</p>
+
+<form method="post" class="form">
+  <label>媒体
+    <select name="platform">
+      {% for p in platforms %}
+      <option value="{{ p }}" {% if p == form.platform %}selected{% endif %}>{{ p }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>テーマ（空欄なら本日のローテーションテーマを使用）
+    <input type="text" name="theme" value="{{ form.theme }}" placeholder="例: 熱中症・ケガ対策グッズ">
+  </label>
+
+  <label>実体験メモ（任意・捏造防止のため空欄可）
+    <textarea name="real_experience" rows="3">{{ form.real_experience }}</textarea>
+  </label>
+
+  <label>アフィリエイト元
+    <select name="affiliate_source">
+      <option value="none" {% if form.affiliate_source == 'none' %}selected{% endif %}>なし</option>
+      <option value="rakuten" {% if form.affiliate_source == 'rakuten' %}selected{% endif %}>楽天市場（キーワード検索）</option>
+      <option value="amazon" {% if form.affiliate_source == 'amazon' %}selected{% endif %}>Amazon（ASINまたは商品URL）</option>
+    </select>
+  </label>
+
+  <label>アフィリエイト検索語 / ASIN・URL
+    <input type="text" name="affiliate_query" value="{{ form.affiliate_query }}" placeholder="例: バレーボール シューズ ジュニア / B0XXXXXXXX">
+  </label>
+
+  <button type="submit">生成する</button>
+</form>
+
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+{% if result %}
+<section class="result">
+  <h2>生成結果</h2>
+  {% if result.aff_error %}<p class="warn">⚠️ {{ result.aff_error }}</p>{% endif %}
+  <pre class="post-text">{{ result.rendered.main_text }}</pre>
+  {% if result.rendered.followup_text %}
+  <h3>コメント欄・自己リプライ用</h3>
+  <pre class="post-text">{{ result.rendered.followup_text }}</pre>
+  {% endif %}
+  {% if result.rendered.bio_note %}<p class="note">{{ result.rendered.bio_note }}</p>{% endif %}
+  {% if result.rendered.missing_experience_flag %}<p class="warn">⚠️ 実体験なしの一般化例です。差し替え推奨。</p>{% endif %}
+  <p class="note">保存先: {{ result.saved_to }}</p>
+</section>
+{% endif %}
+{% endblock %}

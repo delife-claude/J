@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>アフィリエイト投稿専用アプリ</h1>
+<p>楽天アフィリエイト・Amazonアソシエイトのリンクを、Threads / Instagram / X / TikTok / note / Brain
+  （＋おすすめ追加媒体）に最適化した文章で投稿するための管理アプリです。</p>
+
+<div class="cards">
+  <a class="card" href="{{ url_for('strategy') }}">
+    <h2>① 戦略</h2>
+    <p>媒体ごとのリンクの貼り方・添付頻度・CTR最適化ルールを一覧で確認します。</p>
+  </a>
+  <a class="card" href="{{ url_for('create_single') }}">
+    <h2>② 単発作成</h2>
+    <p>テーマ・媒体・実体験・商品を指定して、その場で1件だけ投稿を生成します。</p>
+  </a>
+  <a class="card" href="{{ url_for('create_platform') }}">
+    <h2>③ SNS選択作成</h2>
+    <p>媒体を1つ選び、その媒体向けにまとめて複数件の投稿を生成します。</p>
+  </a>
+  <a class="card" href="{{ url_for('create_daily') }}">
+    <h2>④ 毎日自動作成</h2>
+    <p>今日のテーマ・実体験を使って、全媒体ぶんをまとめて自動生成します（GitHub Actionsの手動実行にも対応）。</p>
+  </a>
+  <a class="card" href="{{ url_for('history') }}">
+    <h2>⑤ 履歴</h2>
+    <p>これまで生成した下書きを媒体別に確認します。</p>
+  </a>
+</div>
+
+<p class="note">対応媒体: {{ platforms|join(' / ') }}</p>
+{% endblock %}

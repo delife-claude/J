@@ -168,3 +168,69 @@ python post_machine.py --themes "熱中症・ケガ対策グッズ" --total 5 \
 必要なSecrets（`daily_pipeline.py`と共用可）：`THREADS_GEMINI_API_KEY` / `TYPEFULLY_API_KEY` /
 `TYPEFULLY_SOCIAL_SET_ID` /（任意）`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`。
 `RAKUTEN_*`は不要（このツールはアフィリエイト連携をしない）。
+
+## 全SNS横断版: アフィリエイト投稿専用アプリ（`webapp/`, `content_engine.py`）
+
+上記2つはThreads専用だが、こちらは **Threads / Instagram / X / TikTok / note / Brain**
+（＋おすすめ追加候補: 自社ブログ・Pinterest・YouTube Shorts）を横断して、楽天アフィリエイト・
+Amazonアソシエイトの両方に対応した投稿を生成できる汎用アプリ。
+
+### なぜ媒体ごとにリンクの貼り方を変えるのか（戦略の要点）
+
+媒体によって「本文にリンクを貼るとリーチが落ちる／リンクが貼れない」という制約が異なるため、
+`sns_rules.json` に媒体ごとのルールを定義し、`content_engine.py` が生成時にそれを踏まえて
+本文とリンク誘導文言を作り分ける。
+
+| 媒体 | リンクの貼り方 | 添付頻度の目安 |
+|---|---|---|
+| Threads | 本文には貼らず、コメント欄・自己リプライへ誘導 | 4投稿に1回 |
+| Instagram | 本文には貼らず、プロフィールリンク（またはストーリーズ）へ誘導 | 4投稿に1回 |
+| X | 本文/スレッド末尾に直接貼ってOK（スレッド最後のツイート推奨） | 3投稿に1回 |
+| TikTok | 動画内で「プロフィールのリンクから」と誘導。キャプションには貼らない | 6投稿に1回 |
+| note | 本文中に直接貼る（noteは記事内リンクが機能する数少ない媒体） | 毎回 |
+| Brain | 原則アフィリエイト誘導なし（自社教材販売のCTA先として使う） | 添付しない |
+| 自社ブログ（おすすめ） | 本文中に直接貼る。SEOで半永久的に流入するストック資産 | 毎回 |
+| Pinterest（おすすめ） | ピンの説明文・リンク先に直接貼る | 毎回 |
+| YouTube Shorts（おすすめ） | 概要欄へ誘導 | 5投稿に1回 |
+
+いずれも**ステマ規制対応**として、アフィリエイトを含む投稿には【PR】表記・広告ハッシュタグを付ける
+仕様になっている。詳細な理由・貼り方・文章の型は、アプリの「戦略」タブ（`webapp/templates/strategy.html`）
+または `sns_rules.json` を参照。
+
+### アプリの4つの画面
+
+1. **戦略**：上記ルールをブラウザで一覧表示（`sns_rules.json`を編集すれば反映される）
+2. **単発作成**：媒体・テーマ・実体験・商品（楽天キーワード or AmazonのASIN/URL）を指定して1件だけ生成
+3. **SNS選択作成**：媒体を1つ選び、まとめて複数件（最大10件）生成。アフィリエイト添付は頻度ルールで自動判定
+4. **毎日自動作成**：本日のテーマ・実体験を使い、全媒体ぶんをまとめて生成（`daily_multi_sns.py`が
+   GitHub Actionsで自動実行するのと同じ処理を手動で試せる）
+
+生成結果は `generated_posts/<媒体名>/` にJSON（構造化データ）とMarkdown（プレビュー用）で保存される
+（履歴タブから閲覧可能）。**どの媒体もTypefully等への自動投稿は行わず、必ず人間が内容を確認してから
+各SNSに手動で投稿する想定**（Threadsのみ、確認後は既存の`typefully_client.py`を使って予約投稿も可能）。
+
+### セットアップ
+
+```
+pip install -r requirements.txt
+export THREADS_GEMINI_API_KEY=...
+python webapp/app.py
+# http://127.0.0.1:5000 を開く
+```
+
+- 楽天商品を使う場合：`RAKUTEN_APP_ID` / `RAKUTEN_ACCESS_KEY` /（任意）`RAKUTEN_AFFILIATE_ID`
+- Amazon商品を使う場合：`AMAZON_ASSOCIATE_TAG`（アソシエイトタグ）。Amazon Product Advertising API
+  は直近180日で3件以上の紹介実績がないと申請が通らないことが多いため、`amazon_client.py`は
+  ASINまたは商品URLからアフィリエイトリンクを組み立てるだけの簡易実装にしてある
+  （商品検索はAmazonのSiteStripeツールバー等で行い、そのASIN/URLをアプリに入力する運用）
+
+### 毎日の自動実行（`daily_multi_sns.py` / `.github/workflows/multi_sns_daily.yml`）
+
+毎日 JST 07:00 に全媒体ぶんの投稿を自動生成し、`generated_posts/`にコミット、LINEに要約を通知する。
+Secrets（すべて任意。未設定の機能はスキップされる）：
+`THREADS_GEMINI_API_KEY`（必須）/ `RAKUTEN_APP_ID` / `RAKUTEN_ACCESS_KEY` / `RAKUTEN_AFFILIATE_ID` /
+`AMAZON_ASSOCIATE_TAG` / `AFFILIATE_KEYWORD`（設定すると楽天でその日の商品を自動検索して該当投稿に挿入）/
+`LINE_CHANNEL_ACCESS_TOKEN` / `LINE_USER_ID`。
+
+各媒体のアフィリエイト添付頻度は `state/post_counts.json` にカウンタとして保存され、
+実行のたびに進む（このファイルもコミット対象）。

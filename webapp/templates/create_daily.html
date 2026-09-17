@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>毎日自動作成</h1>
+<p>本日のテーマ・実体験を使って、全媒体ぶんの投稿をまとめて生成します。
+  GitHub Actions（<code>daily_multi_sns.py</code>）が毎日自動でこれと同じ処理を実行し、
+  下書きをコミット＋LINE通知します。ここでは手動で今すぐ試せます。</p>
+
+<table class="today-info">
+  <tr><th>本日のテーマ</th><td>{{ theme }}</td></tr>
+  <tr><th>本日の実体験</th><td>{{ real_experience or '（未登録：real_experience_bank.jsonに追記すると使われます）' }}</td></tr>
+  <tr><th>対象媒体</th><td>{{ platforms|join(' / ') }}</td></tr>
+</table>
+
+<form method="post">
+  <button type="submit">今すぐ全媒体ぶん生成する</button>
+</form>
+
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+{% if results %}
+<section class="result">
+  <h2>生成結果</h2>
+  {% for r in results %}
+  <article class="post-item">
+    <h3>{{ r.platform }} {% if r.rendered.attach_affiliate %}<span class="tag">アフィリエイトあり</span>{% endif %}</h3>
+    <pre class="post-text">{{ r.rendered.main_text }}</pre>
+    {% if r.rendered.followup_text %}<pre class="post-text small">{{ r.rendered.followup_text }}</pre>{% endif %}
+    {% if r.rendered.bio_note %}<p class="note">{{ r.rendered.bio_note }}</p>{% endif %}
+    {% if r.rendered.missing_experience_flag %}<p class="warn">⚠️ 実体験なしの一般化例です。</p>{% endif %}
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

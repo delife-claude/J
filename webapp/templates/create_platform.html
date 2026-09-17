@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>SNS選択作成</h1>
+<p>1つの媒体を選び、まとめて複数件生成します。アフィリエイト添付は媒体ごとの頻度ルール（戦略タブ参照）に
+  従って自動判定されます（指定した商品はその判定でtrueになった投稿にのみ挿入されます）。</p>
+
+<form method="post" class="form">
+  <label>媒体
+    <select name="platform">
+      {% for p in platforms %}
+      <option value="{{ p }}" {% if p == form.platform %}selected{% endif %}>{{ p }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>テーマ（空欄なら本日のローテーションテーマを使用）
+    <input type="text" name="theme" value="{{ form.theme }}">
+  </label>
+
+  <label>生成件数
+    <input type="number" name="count" min="1" max="10" value="{{ form.count }}">
+  </label>
+
+  <label>アフィリエイト元
+    <select name="affiliate_source">
+      <option value="none" {% if form.affiliate_source == 'none' %}selected{% endif %}>なし</option>
+      <option value="rakuten" {% if form.affiliate_source == 'rakuten' %}selected{% endif %}>楽天市場（キーワード検索）</option>
+      <option value="amazon" {% if form.affiliate_source == 'amazon' %}selected{% endif %}>Amazon（ASINまたは商品URL）</option>
+    </select>
+  </label>
+
+  <label>アフィリエイト検索語 / ASIN・URL
+    <input type="text" name="affiliate_query" value="{{ form.affiliate_query }}">
+  </label>
+
+  <button type="submit">まとめて生成する</button>
+</form>
+
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+{% if results %}
+<section class="result">
+  <h2>生成結果（{{ results|length }}件）</h2>
+  {% for r in results %}
+  <article class="post-item">
+    <h3>{{ loop.index }}. {{ r.post.theme }} {% if r.rendered.attach_affiliate %}<span class="tag">アフィリエイトあり</span>{% endif %}</h3>
+    <pre class="post-text">{{ r.rendered.main_text }}</pre>
+    {% if r.rendered.followup_text %}<pre class="post-text small">{{ r.rendered.followup_text }}</pre>{% endif %}
+    {% if r.rendered.bio_note %}<p class="note">{{ r.rendered.bio_note }}</p>{% endif %}
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}
