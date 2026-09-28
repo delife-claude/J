@@ -12,15 +12,9 @@ from __future__ import annotations
 import os
 import requests
 
-# v1(api.typefully.com/v1)はAPIキー認証が廃止されており、v2エンドポイントを使う必要があると
-# 判明した。ただし正確なv2のURL構成が未確認(公式ドキュメントに未アクセスのため)なので、
-# ありうる候補を順番に試す。成功したURLはログに出力するので、確認できたらここを1つに絞ってよい。
-CANDIDATE_ENDPOINTS = [
-    "https://api.typefully.com/v2/drafts/",
-    "https://api.typefully.com/v2/drafts",
-    "https://typefully.com/api/v2/drafts/",
-    "https://typefully.com/api/v2/drafts",
-]
+# v2のエンドポイント(公式ドキュメント https://typefully.com/docs/api で確認済み)。
+# social_set_idはリクエストボディではなくURLパスに入れる。認証は Authorization: Bearer のみ。
+DRAFTS_ENDPOINT = "https://api.typefully.com/v2/social-sets/{social_set_id}/drafts"
 
 
 def create_scheduled_draft(
@@ -42,14 +36,11 @@ def create_scheduled_draft(
     key = api_key or os.environ["TYPEFULLY_API_KEY"]
     sid = social_set_id or int(os.environ["TYPEFULLY_SOCIAL_SET_ID"])
 
-    # 認証ヘッダーの正式名称が未確認のため、よくある2方式を両方送る(片方は無視される想定)。
     headers = {
-        "X-API-KEY": key,
         "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
     }
     payload = {
-        "social_set_id": sid,
         "platforms": {
             "threads": {
                 "enabled": True,
@@ -62,17 +53,9 @@ def create_scheduled_draft(
     if publish_at_iso:
         payload["publish_at"] = publish_at_iso
 
-    last_error: requests.exceptions.HTTPError | None = None
-    for url in CANDIDATE_ENDPOINTS:
-        resp = requests.post(url, json=payload, headers=headers, timeout=15)
-        if resp.ok:
-            print(f"[info] Typefully API 成功したエンドポイント: {url}")
-            return resp.json()
+    url = DRAFTS_ENDPOINT.format(social_set_id=sid)
+    resp = requests.post(url, json=payload, headers=headers, timeout=15)
+    if not resp.ok:
         print(f"[warn] {url} -> {resp.status_code}: {resp.text[:300]}")
-        try:
-            resp.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            last_error = e
-
-    assert last_error is not None
-    raise last_error
+    resp.raise_for_status()
+    return resp.json()
