@@ -83,7 +83,7 @@ def search_keywords(
         for item in search_items(kw, app_id=app_id, access_key=access_key, hits=hits_per_keyword, genre_id=genre_id):
             code = item.get("itemCode")
             if code and code not in seen:
-                seen[code] = item
+                seen[code] = item | {"keyword": kw}  # どのキーワードで見つけたか（キーワードごとに1つ選ぶため）
         time.sleep(1)  # 楽天API レート制限対策
     return list(seen.values())
 

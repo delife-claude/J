@@ -26,20 +26,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import time
 from datetime import datetime
 from pathlib import Path
 
-from google import genai
-from google.genai import errors, types
+from gemini_util import generate_json
 
 BASE_DIR = Path(__file__).parent
 SYSTEM_PROMPT = (BASE_DIR / "post_machine_system_prompt.txt").read_text(encoding="utf-8")
 
-MODEL = "gemini-3.6-flash"
 MAX_ATTEMPTS = 3
-RETRY_WAIT_SECONDS = 10
 
 LONG_CHAR_RANGE = (900, 1100)
 LONG_MAIN_RANGE = (50, 150)
@@ -102,7 +97,6 @@ def _validate(post: dict) -> list[str]:
 
 def generate_post(theme: str, kind: str, real_experience: str = "") -> dict:
     """1件分の投稿をGeminiで生成する。文字数ルール違反時は指摘つきで再生成を試みる。"""
-    client = genai.Client(api_key=os.environ["THREADS_GEMINI_API_KEY"])
     payload = {"theme": theme, "kind": kind, "real_experience": real_experience}
     feedback = ""
     last_post: dict | None = None
@@ -111,24 +105,7 @@ def generate_post(theme: str, kind: str, real_experience: str = "") -> dict:
         user_message = json.dumps(payload, ensure_ascii=False)
         if feedback:
             user_message += f"\n\n# 前回の出力の問題点（必ず修正すること）\n{feedback}"
-        try:
-            response = client.models.generate_content(
-                model=MODEL,
-                contents=user_message,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_PROMPT,
-                    response_mime_type="application/json",
-                    max_output_tokens=4096,
-                ),
-            )
-        except errors.ServerError:
-            if attempt == MAX_ATTEMPTS:
-                raise
-            time.sleep(RETRY_WAIT_SECONDS * attempt)
-            continue
-
-        # strict=False: Geminiが本文中の改行を生の制御文字のまま返すことがあるため許容する
-        post = json.loads(response.text, strict=False)
+        post = generate_json("THREADS_GEMINI_API_KEY", SYSTEM_PROMPT, user_message)  # 再試行・モデル切り替えは gemini_util
         last_post = post
         problems = _validate(post)
         if not problems:

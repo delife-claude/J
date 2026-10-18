@@ -23,7 +23,7 @@ from pathlib import Path
 from generate_weekly_posts import generate_post_for_day
 from rakuten_client import search_keywords
 from typefully_client import create_scheduled_draft
-from notify import send_line_push
+from notify import notify_failure, send_line_push
 
 BASE_DIR = Path(__file__).parent
 JST = timezone(timedelta(hours=9))
@@ -189,8 +189,13 @@ def main() -> None:
         print("[warn] LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID が未設定のため通知をスキップしました。")
 
     if typefully_error:
+        typefully_error.notified = True
         raise typefully_error  # LINE通知は届けたうえで、ジョブ自体は失敗として扱う
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:  # 理由をLINEに送ってから、ジョブは失敗のまま
+        notify_failure("Threads自動投稿", e)
+        raise

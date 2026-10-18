@@ -54,4 +54,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:  # 理由をLINEに送ってから、ジョブは失敗のまま
+        if os.environ.get("LINE_CHANNEL_ACCESS_TOKEN") and os.environ.get("LINE_USER_ID"):
+            try:
+                msg = ("【楽天ROOM下書き通知】❌ 途中で止まりました" + "\n" + f"{type(e).__name__}: {str(e)[:500]}" + "\n"
+                       "GitHub（delife-claude/J）の Actions で詳しいログが見られます。")
+                send_line_push(msg, channel_access_token=os.environ["LINE_CHANNEL_ACCESS_TOKEN"], user_id=os.environ["LINE_USER_ID"])
+            except Exception as e2:
+                print(f"[warn] 失敗の通知も送れませんでした: {e2}")
+        raise

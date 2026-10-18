@@ -1,10 +1,9 @@
 name: Threads投稿生成マシーン（毎日・下書き登録まで自動）
 
 on:
-  # 2026-10-18 毎日の自動実行は止めた（Jさんの依頼。別のアカウントでやる）。手動の「Run workflow」だけ残す
-  # schedule:
-  #   # 毎日 JST 08:00 (= UTC 23:00 前日)
-  #   - cron: "0 23 * * *"
+  schedule:
+    # 毎日 JST 08:00 (= UTC 23:00 前日)
+    - cron: "0 23 * * *"
   workflow_dispatch:
     inputs:
       total:
