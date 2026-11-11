@@ -30,9 +30,9 @@ def run(seq):
     script[:] = seq; calls.clear(); return G.generate_json("K", "sys", "hi")
 assert run([("err", ServerError(503, "overloaded")), ("ok", '{"a":1}')]) == {"a": 1} and calls == ["gemini-3.6-flash"] * 2
 assert run([("err", ClientError(429, "RESOURCE_EXHAUSTED GenerateRequestsPerMinute")), ("ok", '{"a":2}')]) == {"a": 2}
-assert run([("err", ClientError(429, "quota GenerateRequestsPerDayPerProjectPerModel")), ("ok", '{"a":3}')]) == {"a": 3} and calls == ["gemini-3.6-flash", "gemini-2.5-flash"]
+assert run([("err", ClientError(429, "quota GenerateRequestsPerDayPerProjectPerModel")), ("ok", '{"a":3}')]) == {"a": 3} and calls == G.MODELS[:2]
 assert run([("ok", ""), ("ok", '{"a":4')]+[("ok", '{"a":5}')]) == {"a": 5}          # 空の返事・壊れたJSON → 再試行
-assert run([("err", ClientError(404, "model not found")), ("ok", '{"b":1}')]) == {"b": 1} and calls[1] == "gemini-2.5-flash"
+assert run([("err", ClientError(404, "model not found")), ("ok", '{"b":1}')]) == {"b": 1} and calls[1] == G.MODELS[1]
 try:
     run([("err", ClientError(429, "PerDay"))] * 3); raise AssertionError("止まるはず")
 except G.GeminiFailed as e:
