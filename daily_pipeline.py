@@ -164,7 +164,8 @@ def main() -> None:
 
     typefully_error: Exception | None = None
     try:
-        if ok_to_auto_post:
+        # 2026-11-28 Jさん「枠の確保」：タイプフリーの無料の予約枠（月10本）はノートの紹介に使うので、ここでは予約しない（下書きだけ）
+        if False and ok_to_auto_post:
             schedule_iso = next_18_00_jst_as_utc_iso()
             result = create_scheduled_draft(posts=posts, publish_at_iso=schedule_iso, draft_title=draft_title)
             status_line = f"✅ Typefullyに予約投稿しました（{schedule_iso} 公開予定 / draft_id={result.get('id', '不明')}）"
